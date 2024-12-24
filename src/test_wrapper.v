@@ -12,11 +12,13 @@ module test_wrapper(
     input write_en,
     input [4:0] read_addr,
     output reg [15:0] data_out,
-    input [15:0] instruction
+    input [15:0] instruction,
+    output reg[4:0] fsm_pc
     );
 
     initial begin
         pc = 5'b0;
+        fsm_pc = 5'b0;
         data_out = 16'b0;
     end
 
@@ -45,7 +47,7 @@ module test_wrapper(
         .clk(clk),
         .rst(rst),
         .instruction(instruction),
-        .pc(pc)
+        .pc(fsm_pc)
     );
 
 endmodule
