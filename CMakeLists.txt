@@ -9,6 +9,7 @@ set(SIM_SRCS
     src/fsm.v
     src/instruction_regfile.v
     src/program_counter.v
+    src/pio_core.v
 )
 
 set(UNIT_TEST_SRCS
@@ -17,11 +18,13 @@ set(UNIT_TEST_SRCS
     src/fsm.v
     src/instruction_regfile.v
     src/program_counter.v
+    src/pio_core.v
 )
 
 set(UNIT_TEST_C_SRCS
     tests/program_counter.cpp
     tests/instruction_regfile.cpp
+    tests/fsm.cpp
 )
 
 # Main sim

@@ -1,12 +1,12 @@
 module program_counter(
     input clk,
     input rst,
-    input [3:0] wrap_top,
-    input [3:0] wrap_bottom,
-    input [3:0] jump,
+    input [4:0] wrap_top,
+    input [4:0] wrap_bottom,
+    input [4:0] jump,
     input jump_en,
     input pc_en,
-    output reg [3:0] pc
+    output reg [4:0] pc
     );
     
     always @(posedge clk or posedge rst) begin
