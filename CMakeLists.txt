@@ -19,6 +19,11 @@ set(UNIT_TEST_SRCS
     src/program_counter.v
 )
 
+set(UNIT_TEST_C_SRCS
+    tests/program_counter.cpp
+    tests/instruction_regfile.cpp
+)
+
 # Main sim
 add_executable(sim tb/tb_main.cpp)
 target_compile_options(sim PRIVATE -std=c++23)
@@ -26,7 +31,7 @@ verilate(sim SOURCES ${SIM_SRCS} TRACE TOP_MODULE pio_chip)
 
 # Unit tests
 add_subdirectory(lib/googletest)
-add_executable(unit_tests tb/tb_unit_tests.cpp)
+add_executable(unit_tests ${UNIT_TEST_C_SRCS})
 set_target_properties(unit_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(unit_tests PRIVATE gtest gtest_main)
 target_compile_options(unit_tests PRIVATE -std=c++23)

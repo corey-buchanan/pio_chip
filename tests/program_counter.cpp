@@ -5,7 +5,6 @@ class ProgramCounterTests : public ::testing::Test {
 protected:
     Vtest_wrapper* uut;
 
-    // Initialize your module
     void SetUp() override {
         uut = new Vtest_wrapper;
 
@@ -15,26 +14,14 @@ protected:
         uut->wrap_bottom = 0b1111;
         uut->jump = 0;
         uut->pc_en = 0;
+
         uut->eval();
     }
 
-    // Clean up after each test
     void TearDown() override {
         delete uut;
     }
 };
-
-// TEST_F(UnitTests, TestCounterCountsAndWraps) {
-//     for (int i = 0; i < 10; i++) {
-//         top->clk = 0;
-//         top->eval();
-//         EXPECT_EQ(top->counter, i % 4);
-
-//         top->clk = 1;
-//         top->eval();
-//         EXPECT_EQ(top->counter, (i+1) % 4);
-//     }
-// }
 
 TEST_F(ProgramCounterTests, ProgramCounterOnlyIncrementsWithPCEnable) {
     // Enable off
