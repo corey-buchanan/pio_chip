@@ -13,7 +13,8 @@ module test_wrapper(
     input [4:0] read_addr,
     output reg [15:0] data_out,
     input [15:0] instruction,
-    output reg[4:0] fsm_pc
+    output reg[4:0] fsm_pc,
+    output reg [31:0] x, y
     );
 
     initial begin
@@ -49,5 +50,8 @@ module test_wrapper(
         .instruction(instruction),
         .pc(fsm_pc)
     );
+    
+    assign x = uut_fsm.x;
+    assign y = uut_fsm.y;
 
 endmodule
