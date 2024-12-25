@@ -145,10 +145,10 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 ## JMP
 
 - [x] 000 | Always/unconditional
-- [ ] 001 | !X | Scratch X zero
-- [ ] 010 | X-- | Scratch X nonzero before decrement
-- [ ] 011 | !Y | Scratch Y zero
-- [ ] 100 | Y-- | Scratch Y nonzero before decrement
+- [x] 001 | !X | Scratch X zero
+- [x] 010 | X-- | Scratch X nonzero before decrement
+- [x] 011 | !Y | Scratch Y zero
+- [x] 100 | Y-- | Scratch Y nonzero before decrement
 - [ ] 101 | X!=Y | Scratch X not equal to scratch Y
 - [ ] 110 | PIN | Branch on input pin
 - [ ] 111 | !OSRE | Output shift register not empty

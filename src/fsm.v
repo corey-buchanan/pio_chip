@@ -47,13 +47,35 @@ module fsm(
                     // Unconditional
                     jump_en <= 1;
                 end else if (instruction[7:5] == 3'b001) begin
-                    // If !X
+                    // If !X (X zero)
                     if (x == 0) begin
                         jump_en <= 1;
-                    end
-                    else begin
+                    end else begin
                         jump_en <= 0;
                     end
+                end else if (instruction[7:5] == 3'b010) begin
+                    // If X-- (X non-zero prior to decrement)
+                    if (x != 0) begin
+                        jump_en <= 1;
+                    end else begin
+                        jump_en <= 0;
+                    end
+                    x <= x - 1;
+                end else if (instruction[7:5] == 3'b011) begin
+                    // If !Y (Y zero)
+                    if (y == 0) begin
+                        jump_en <= 1;
+                    end else begin
+                        jump_en <= 0;
+                    end
+                end else if (instruction[7:5] == 3'b100) begin
+                    // If Y-- (Y non-zero prior to decrement)
+                    if (y != 0) begin
+                        jump_en <= 1;
+                    end else begin
+                        jump_en <= 0;
+                    end
+                    y <= y - 1;
                 end else begin
                     jump_en <= 0;
                 end
