@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "Vtest_wrapper.h"
-#include "verilated_vcd_c.h"
 
 class FsmTests : public ::testing::Test {
 protected:
@@ -25,6 +24,7 @@ protected:
         delete uut;
     }
 
+    // Generates a rising edge
     void AdvanceOneCycle() {
         uut->clk = 0;
         uut->eval();
@@ -49,23 +49,28 @@ TEST_F(FsmTests, TestJumpScratchXZero) {
     uut->clk = 1;
     uut->eval();
 
-    AdvanceOneCycle();
+    uut->clk = 0;
+    uut->eval();
 
-    // Expect the branch to be taken, as there is nothing in the X register
-    EXPECT_EQ(uut->fsm_pc, 0b01010);
-
-    // Store something other than zero in X
+    // Set up to store something other than zero in X
     uut->instruction = 0b1110'0000'0011'0101;
     uut->clk = 1;
     uut->eval();
 
+    // Expect the branch to be taken, as there is nothing in the X register
+    EXPECT_EQ(uut->fsm_pc, 0b01010);
+
+    uut->clk = 0;
+    uut->eval();
+
     // JMP 001 - !X - Scratch X zero
     uut->instruction = 0b0000'0000'0011'1110;
-    AdvanceOneCycle();
+    uut->clk = 1;
+    uut->eval();
 
-    // Expect the branch to not be taken, as there is stuff in X
+    // Expect the branch to not be taken (PC advances 2), as there is a value in X
     AdvanceOneCycle();
-    EXPECT_EQ(uut->fsm_pc, 0b01011);
+    EXPECT_EQ(uut->fsm_pc, 0b01100);
 }
 
 // 010 - X-- - Scratch X non-zero before decrement
