@@ -144,119 +144,95 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 
 ## JMP
 
-<ul>
-  <li><input type="checkbox" checked>000 | Always/unconditional</li>
-  <li><input type="checkbox">001 | !X | Scratch X zero</li>
-  <li><input type="checkbox">010 | X-- | Scratch X nonzero before decrement</li>
-  <li><input type="checkbox">011 | !Y | Scratch Y zero</li>
-  <li><input type="checkbox">100 | Y-- | Scratch Y nonzero before decrement</li>
-  <li><input type="checkbox">101 | X!=Y | Scratch X not equal to scratch Y</li>
-  <li><input type="checkbox">110 | PIN | Branch on input pin</li>
-  <li><input type="checkbox">111 | !OSRE | Output shift register not empty</li>
-</ul>
+- [x] 000 | Always/unconditional
+- [ ] 001 | !X | Scratch X zero
+- [ ] 010 | X-- | Scratch X nonzero before decrement
+- [ ] 011 | !Y | Scratch Y zero
+- [ ] 100 | Y-- | Scratch Y nonzero before decrement
+- [ ] 101 | X!=Y | Scratch X not equal to scratch Y
+- [ ] 110 | PIN | Branch on input pin
+- [ ] 111 | !OSRE | Output shift register not empty
 
 ## WAIT
 
-<ul>
-  <li><input type="checkbox">Polarity</li>
-  <li><input type="checkbox">00 | GPIO source (no mapping applied)</li>
-  <li><input type="checkbox">01 | PIN source (mapping applied)</li>
-  <li><input type="checkbox">10 | IRQ flag</li>
-</ul>
+- [ ] Polarity
+- [ ] 00 | GPIO source (no mapping applied)
+- [ ] 01 | PIN source (mapping applied)
+- [ ] 10 | IRQ flag
 
 ## IN
 
 Remember bitcount is encoded as 1-32, with 32 being encoded as 00000.
 
-<ul>
-  <li><input type="checkbox">000 | PINS source</li>
-  <li><input type="checkbox">001 | X source</li>
-  <li><input type="checkbox">010 | Y source</li>
-  <li><input type="checkbox">011 | NULL source (zeroes)</li>
-  <li><input type="checkbox">110 | ISR source</li>
-  <li><input type="checkbox">111 | OSR source</li>
-</ul>
+- [ ] 000 | PINS source
+- [ ] 001 | X source
+- [ ] 010 | Y source
+- [ ] 011 | NULL source (zeroes)
+- [ ] 110 | ISR source
+- [ ] 111 | OSR source
 
 ## OUT
 
 Remember bitcount is encoded as 1-32, with 32 being encoded as 00000.
 
-<ul>
-  <li><input type="checkbox">000 | PINS source</li>
-  <li><input type="checkbox">001 | X source</li>
-  <li><input type="checkbox">010 | Y source</li>
-  <li><input type="checkbox">011 | NULL source (zeroes)</li>
-  <li><input type="checkbox">110 | ISR source</li>
-  <li><input type="checkbox">111 | EXEC source</li>
-</ul>
+- [ ] 000 | PINS source
+- [ ] 001 | X source
+- [ ] 010 | Y source
+- [ ] 011 | NULL source (zeroes)
+- [ ] 110 | ISR source
+- [ ] 111 | EXEC source
 
 ## PUSH
 
-<ul>
-  <li><input type="checkbox">Normal</li>
-  <li><input type="checkbox">IfFull</li>
-  <li><input type="checkbox">Block</li>
-</ul>
+- [ ] Normal
+- [ ] IfFull
+- [ ] Block
 
 ## PULL
 
-<ul>
-  <li><input type="checkbox">Normal</li>
-  <li><input type="checkbox">IfEmpty</li>
-  <li><input type="checkbox">Block</li>
-</ul>
+- [ ] Normal
+- [ ] IfEmpty
+- [ ] Block
 
 ## MOV
 
-<ul>
-  <li><input type="checkbox">Normal</li>
-  <li><input type="checkbox">IfEmpty</li>
-  <li><input type="checkbox">Block</li>
-</ul>
+- [ ] Normal
+- [ ] IfEmpty
+- [ ] Block
 
 ### Destinations
 
-<ul>
-  <li><input type="checkbox">000 | PINS (same mapping as OUT)</li>
-  <li><input type="checkbox">001 | X</li>
-  <li><input type="checkbox">010 | Y</li>
-  <li><input type="checkbox">100 | EXEC</li>
-  <li><input type="checkbox">101 | PC</li>
-  <li><input type="checkbox">110 | ISR</li>
-  <li><input type="checkbox">111 | OSR</li>
-</ul>
+- [ ] 000 | PINS (same mapping as OUT)
+- [ ] 001 | X
+- [ ] 010 | Y
+- [ ] 100 | EXEC
+- [ ] 101 | PC
+- [ ] 110 | ISR
+- [ ] 111 | OSR
 
 ### Operations
 
-<ul>
-  <li><input type="checkbox">00 | None</li>
-  <li><input type="checkbox">01 | Invert (bit-wise complement)</li>
-  <li><input type="checkbox">10 | Bit-reverse</li>
-</ul>
+- [ ] 00 | None
+- [ ] 01 | Invert (bit-wise complement)
+- [ ] 10 | Bit-reverse
 
 ## IRQ
 
-<ul>
-  <li><input type="checkbox">Normal</li>
-  <li><input type="checkbox">Clr</li>
-  <li><input type="checkbox">Wait</li>
-  <li><input type="checkbox">Index MSB</li>
-</ul>
+- [ ] Normal
+- [ ] Clr
+- [ ] Wait
+- [ ] Index MSB
 
 ## SET
 
-<ul>
-  <li><input type="checkbox">000 | PINS</li>
-  <li><input type="checkbox" checked>001 | X - 5 lsbs to data, others cleared to zero</li>
-  <li><input type="checkbox" checked>010 | Y - 5 lsbs to data, others cleared to zero</li>
-  <li><input type="checkbox">100 | PINDIRS</li>
-</ul>
+- [ ] 000 | PINS
+- [x] 001 | X - 5 lsbs to data, others cleared to zero
+- [x] 010 | Y - 5 lsbs to data, others cleared to zero
+- [ ] 100 | PINDIRS
 
 ## Misc
 
-<ul>
-  <li><input type="checkbox">Delay cycles</li>
-  <li><input type="checkbox">Sideset</li>
-  <li><input type="checkbox">Shift directions</li>
-  <li><input type="checkbox">Autopush</li>
-</ul>
+- [ ] Delay cycles
+- [ ] Sideset
+- [ ] Shift directions
+- [ ] Autopush
