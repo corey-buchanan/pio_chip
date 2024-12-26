@@ -51,7 +51,7 @@ TEST_F(FsmTests, TestJumpUnconditionalInstruction) {
 }
 
 TEST_F(FsmTests, TestJumpXZero) {
-    // JMP 001 : Jump if X is zero
+    // JMP 001 : Jump to 0b01010 if X is zero
     uut->instruction = 0b0000'0000'0010'1010;
     AdvanceOneCycle();
 
@@ -62,7 +62,7 @@ TEST_F(FsmTests, TestJumpXZero) {
     // Expect the first jump to be taken, as X was zero on issue
     EXPECT_EQ(uut->fsm_pc, 0b01010);
 
-    // JMP 001 : Jump if X is zero
+    // JMP 001 : Jump to 0b11110 if X is zero
     uut->instruction = 0b0000'0000'0011'1110;
     AdvanceOneCycle();
 
@@ -72,7 +72,7 @@ TEST_F(FsmTests, TestJumpXZero) {
 }
 
 TEST_F(FsmTests, TestJumpYZero) {
-    // JMP 011 : Jump if Y is zero
+    // JMP 011 : Jump to 0b01010 if Y is zero
     uut->instruction = 0b0000'0000'0110'1010;
     AdvanceOneCycle();
 
@@ -83,7 +83,7 @@ TEST_F(FsmTests, TestJumpYZero) {
     // Expect the first jump to be taken, as Y was zero on issue
     EXPECT_EQ(uut->fsm_pc, 0b01010);
 
-    // JMP 001 : Jump if Y is zero
+    // JMP 001 : Jump to 0b11110 if Y is zero
     uut->instruction = 0b0000'0000'0111'1110;
     AdvanceOneCycle();
 
@@ -97,17 +97,17 @@ TEST_F(FsmTests, TestJumpXNonZeroDecrement) {
     uut->instruction = 0b1110'0000'0010'0001;
     AdvanceOneCycle();
 
-    // JMP X-- : Jump if X was non-zero before decrementing.
+    // JMP X-- : Jump to 0b01010 if X was non-zero before decrementing.
     uut->instruction = 0b0000'0000'0100'1010;
     AdvanceOneCycle();
     EXPECT_EQ(uut->x, 0); // X should decrement to 0
 
-    // Issue another JMP X-- when X is already zero.
+    // Issue another JMP X-- to 0b11111 when X is already zero.
     uut->instruction = 0b0000'0000'0101'1111;
     AdvanceOneCycle();
     EXPECT_EQ(uut->fsm_pc, 0b01010); // Verify that the first jump was taken
     // Verify that X wraps around after decrementing from 0.
-    EXPECT_EQ(uut->x, 0b1111'1111'1111'1111'1111'1111'1111'1111);
+    EXPECT_EQ(uut->x, 0xFFFFFFFF);
 
     AdvanceOneCycle();
     EXPECT_EQ(uut->fsm_pc, 0b01011); // Verify that second jump was not taken (PC increments)
@@ -118,27 +118,46 @@ TEST_F(FsmTests, TestJumpYNonZeroDecrement) {
     uut->instruction = 0b1110'0000'0100'0001;
     AdvanceOneCycle();
 
-    // JMP Y-- : Jump if Y was non-zero before decrementing.
+    // JMP Y-- : Jump to 0b01010 if Y was non-zero before decrementing.
     uut->instruction = 0b0000'0000'1000'1010;
     AdvanceOneCycle();
     EXPECT_EQ(uut->y, 0); // Y should decrement to 0
 
-    // Issue another JMP Y-- when Y is already zero.
+    // Issue another JMP Y-- to 0b11111 when Y is already zero.
     uut->instruction = 0b0000'0000'1001'1111;
     AdvanceOneCycle();
     EXPECT_EQ(uut->fsm_pc, 0b01010); // Verify that the first jump was taken
     // Verify that Y wraps around after decrementing from 0.
-    EXPECT_EQ(uut->y, 0b1111'1111'1111'1111'1111'1111'1111'1111);
+    EXPECT_EQ(uut->y, 0xFFFFFFFF);
 
     AdvanceOneCycle();
     EXPECT_EQ(uut->fsm_pc, 0b01011); // Verify that second jump was not taken (PC increments)
 }
 
-// 011 - !Y - Scratch Y zero
-// uut->instruction = 0b0000'0000'0110'1010;
+TEST_F(FsmTests, TestJumpXNotEqualY) {
+    // Set X = 0b01110
+    uut->instruction = 0b1110'0000'0010'1110;
+    AdvanceOneCycle();
+    // Set Y = 0b01110 (equal to x)
+    uut->instruction = 0b1110'0000'0100'1110;
+    AdvanceOneCycle();
 
-// 100 - Y-- - Scratch Y non-zero before decrement
-// uut->instruction = 0b0000'0000'1000'1010;
+    // JMP X!=Y to 0b00000
+    uut->instruction = 0b0000'0000'1010'0000;
+    AdvanceOneCycle();
+
+    // Set Y = 0b00100 (not equal to x)
+    uut->instruction = 0b1110'0000'0100'0100;
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->fsm_pc, 0b00011); // Verify jump was not taken
+
+    // Re-issue jmp instruction
+    uut->instruction = 0b0000'0000'1010'0000;
+    AdvanceOneCycle();
+
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->fsm_pc, 0b00000); // Verify jump was taken
+}
 
 TEST_F(FsmTests, TestSetImmediateXY) {
     uut->instruction = 0b1110'0000'0011'0101;
@@ -152,7 +171,7 @@ TEST_F(FsmTests, TestSetImmediateXY) {
     EXPECT_EQ(uut->y, 0b01110);
 
     // Test persistence
-    uut->instruction = 0b0000'0000'0000'0000;
+    uut->instruction = 0x0000;
     AdvanceOneCycle();
     EXPECT_EQ(uut->x, 0b10101);
     EXPECT_EQ(uut->y, 0b01110);

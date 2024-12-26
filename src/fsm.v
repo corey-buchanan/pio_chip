@@ -39,82 +39,89 @@ module fsm(
         end
         else begin
             // JMP
-            if (instruction[15:13] == 3'b000) begin
-                jump <= instruction[4:0];
-                pc_en <= 1;
+            case (instruction[15:13])
+                3'b000: begin
+                    jump <= instruction[4:0];
+                    pc_en <= 1;
 
-                if (instruction[7:5] == 3'b000) begin
-                    // Unconditional
-                    jump_en <= 1;
-                end else if (instruction[7:5] == 3'b001) begin
-                    // If !X (X zero)
-                    if (x == 0) begin
-                        jump_en <= 1;
-                    end else begin
-                        jump_en <= 0;
-                    end
-                end else if (instruction[7:5] == 3'b010) begin
-                    // If X-- (X non-zero prior to decrement)
-                    if (x != 0) begin
-                        jump_en <= 1;
-                    end else begin
-                        jump_en <= 0;
-                    end
-                    x <= x - 1;
-                end else if (instruction[7:5] == 3'b011) begin
-                    // If !Y (Y zero)
-                    if (y == 0) begin
-                        jump_en <= 1;
-                    end else begin
-                        jump_en <= 0;
-                    end
-                end else if (instruction[7:5] == 3'b100) begin
-                    // If Y-- (Y non-zero prior to decrement)
-                    if (y != 0) begin
-                        jump_en <= 1;
-                    end else begin
-                        jump_en <= 0;
-                    end
-                    y <= y - 1;
-                end else begin
+                    case(instruction[7:5])
+                        3'b000: begin
+                            // Unconditional
+                            jump_en <= 1;
+                        end
+                        3'b001: begin
+                            // If !X (X zero)
+                            if (x == 0) jump_en <= 1;
+                            else jump_en <= 0;
+                        end
+                        3'b010: begin
+                            // If X-- (X non-zero prior to decrement)
+                            if (x != 0) jump_en <= 1;
+                            else jump_en <= 0;
+                            x <= x - 1;
+                        end
+                        3'b011: begin
+                            // If !Y (Y zero)
+                            if (y == 0) jump_en <= 1;
+                            else jump_en <= 0;
+                        end
+                        3'b100: begin
+                            // If Y-- (Y non-zero prior to decrement)
+                            if (y != 0) jump_en <= 1;
+                            else jump_en <= 0;
+                            y <= y - 1;
+                        end
+                        3'b101: begin
+                            // If X!=Y
+                            if (x != y) jump_en <= 1;
+                            else jump_en <= 0;
+                        end
+                        default: begin
+                            jump_en <= 0;
+                        end
+                    endcase
+                end
+                // WAIT
+                3'b001: begin
+                    // Do nothing for now
+                    // We'll pretend it's a no-op instruction for the moment
                     jump_en <= 0;
+                    pc_en <= 1;
                 end
-            end
-            // WAIT
-            else if (instruction[15:13] == 3'b001) begin
-                // Do nothing for now
-                // We'll pretend it's a no-op instruction for the moment
-                jump_en <= 0;
-                pc_en <= 1;
-            end
-            // IN
+                // IN
 
-            // OUT
+                // OUT
 
-            // PUSH
+                // PUSH
 
-            // PULL
+                // PULL
 
-            // MOV
+                // MOV
 
-            // IRQ
+                // IRQ
 
-            // SET
-            else if (instruction[15:13] == 3'b111) begin
-                jump_en <= 0;
-                pc_en <= 1;
-                if (instruction[7:5] == 3'b001) begin
-                    x[31:5] <= 27'b0;
-                    x[4:0] <= instruction[4:0];
-                end else if (instruction[7:5] == 3'b010) begin
-                    y[31:5] <= 27'b0;
-                    y[4:0] <= instruction[4:0];
+                // SET
+                3'b111: begin
+                    jump_en <= 0;
+                    pc_en <= 1;
+                    case (instruction[7:5])
+                        3'b001: begin
+                            x[31:5] <= 27'b0;
+                            x[4:0] <= instruction[4:0];
+                        end
+                        3'b010: begin
+                            y[31:5] <= 27'b0;
+                            y[4:0] <= instruction[4:0];
+                        end
+                        default: begin
+                        end
+                    endcase
                 end
-            end
-            else begin
-                jump_en <= 0;
-                pc_en <= 1;
-            end
+                default: begin
+                    jump_en <= 0;
+                    pc_en <= 1;
+                end
+            endcase
         end
     end
 
