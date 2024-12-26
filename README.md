@@ -20,6 +20,8 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 [ ] Build an assembler, or import it to make testing easier
 [ ] Implement clock divider
 [ ] Document anything that is different than the PIO
+[ ] Create OSR and ISR
+[ ] Create interrupt controller
 
 # Instruction Encoding Reference
 
@@ -238,3 +240,22 @@ Remember bitcount is encoded as 1-32, with 32 being encoded as 00000.
 - [ ] Sideset
 - [ ] Shift directions
 - [ ] Autopush
+
+# Register Locations
+| Addr  | Register           | Regfile     |
+|-------|--------------------|-------------|
+| 0x000 | CTRL               | Control     |
+| 0x004 | FSTAT              | Control     |
+| 0x008 | FDEBUG             | Control     |
+| 0x00C | FLEVEL             | Control     |
+| 0x010 | TXF0               | FIFO        |
+| 0x014 | TXF1               | FIFO        |
+| 0x018 | TXF2               | FIFO        |
+| 0x01C | TXF3               | FIFO        |
+| 0x020 | RXF0               | FIFO        |
+| 0x024 | RXF1               | FIFO        |
+| 0x028 | RXF2               | FIFO        |
+| 0x02C | RXF3               | FIFO        |
+| 0x030 | IRQ                | Control     |
+| 0x034 | IRQ_FORCE          | Interrupt   |
+| 0x038 | INPUT_SYNC_BYPASS  | Control     |
