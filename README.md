@@ -153,7 +153,7 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 - [x] 010 | X-- | Scratch X nonzero before decrement
 - [x] 011 | !Y | Scratch Y zero
 - [x] 100 | Y-- | Scratch Y nonzero before decrement
-- [ ] 101 | X!=Y | Scratch X not equal to scratch Y
+- [x] 101 | X!=Y | Scratch X not equal to scratch Y
 - [ ] 110 | PIN | Branch on input pin
 - [ ] 111 | !OSRE | Output shift register not empty
 
@@ -242,20 +242,57 @@ Remember bitcount is encoded as 1-32, with 32 being encoded as 00000.
 - [ ] Autopush
 
 # Register Locations
-| Addr  | Register           | Regfile     |
-|-------|--------------------|-------------|
-| 0x000 | CTRL               | Control     |
-| 0x004 | FSTAT              | Control     |
-| 0x008 | FDEBUG             | Control     |
-| 0x00C | FLEVEL             | Control     |
-| 0x010 | TXF0               | FIFO        |
-| 0x014 | TXF1               | FIFO        |
-| 0x018 | TXF2               | FIFO        |
-| 0x01C | TXF3               | FIFO        |
-| 0x020 | RXF0               | FIFO        |
-| 0x024 | RXF1               | FIFO        |
-| 0x028 | RXF2               | FIFO        |
-| 0x02C | RXF3               | FIFO        |
-| 0x030 | IRQ                | Control     |
-| 0x034 | IRQ_FORCE          | Interrupt   |
-| 0x038 | INPUT_SYNC_BYPASS  | Control     |
+Done means not only added to register file, but associated functionality implemented.
+
+| Addr  | Register           | Regfile     | Done |
+|-------|--------------------|-------------|------|
+| 0x000 | CTRL               | Control     |      |
+| 0x004 | FSTAT              | Control     |      |
+| 0x008 | FDEBUG             | Control     |      |
+| 0x00C | FLEVEL             | Control     |      |
+| 0x010 | TXF0               | FIFO        |      |
+| 0x014 | TXF1               | FIFO        |      |
+| 0x018 | TXF2               | FIFO        |      |
+| 0x01C | TXF3               | FIFO        |      |
+| 0x020 | RXF0               | FIFO        |      |
+| 0x024 | RXF1               | FIFO        |      |
+| 0x028 | RXF2               | FIFO        |      |
+| 0x02C | RXF3               | FIFO        |      |
+| 0x030 | IRQ                | Control     |      |
+| 0x034 | IRQ_FORCE          | Interrupt   |      |
+| 0x038 | INPUT_SYNC_BYPASS  | Control     |      |
+| 0x03C | DBG_PADOUT         | Control     |      |
+| 0x040 | DBG_PADOE          | Control     |      |
+| 0x044 | DBG_CFGINFO        | Control     |      |
+| 0x048 | INSTR_MEM0...31    | Instruction | X    |
+| 0x0C8 | SM0_CLKDIV         | Control     |      |
+| 0x0CC | SM0_EXECCTRL       | Control     |      |
+| 0x0D0 | SM0_SHIFTCTRL      | Control     |      |
+| 0x0D4 | SM0_ADDR           | Control     |      |
+| 0x0D8 | SM0_INSTR          | Control     |      |
+| 0x0DC | SM0_PINCTRL        | Control     |      |
+| 0x0E0 | SM1_CLKDIV         | Control     |      |
+| 0x0E4 | SM1_EXECCTRL       | Control     |      |
+| 0x0E8 | SM1_SHIFTCTRL      | Control     |      |
+| 0x0EC | SM1_ADDR           | Control     |      |
+| 0x0F0 | SM1_INSTR          | Control     |      |
+| 0x0F4 | SM1_PINCTRL        | Control     |      |
+| 0x0F8 | SM2_CLKDIV         | Control     |      |
+| 0x0FC | SM2_EXECCTRL       | Control     |      |
+| 0x0E0 | SM2_SHIFTCTRL      | Control     |      |
+| 0x0E4 | SM2_ADDR           | Control     |      |
+| 0x0E8 | SM2_INSTR          | Control     |      |
+| 0x0EC | SM2_PINCTRL        | Control     |      |
+| 0x110 | SM3_CLKDIV         | Control     |      |
+| 0x114 | SM3_EXECCTRL       | Control     |      |
+| 0x118 | SM3_SHIFTCTRL      | Control     |      |
+| 0x11C | SM3_ADDR           | Control     |      |
+| 0x120 | SM3_INSTR          | Control     |      |
+| 0x124 | SM3_PINCTRL        | Control     |      |
+| 0x128 | INTR               | Control     |      |
+| 0x12C | IRQ0_INTE          | Control     |      |
+| 0x130 | IRQ0_INTF          | Control     |      |
+| 0x134 | IRQ0_INTS          | Control     |      |
+| 0x138 | IRQ1_INTE          | Control     |      |
+| 0x13C | IRQ1_INTF          | Control     |      |
+| 0x140 | IRQ1_INTS          | Control     |      |
