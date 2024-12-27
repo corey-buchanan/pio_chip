@@ -6,8 +6,13 @@ module control_regfile(
     input write_en,
     input [4:0] read_addr,
     output [31:0] data_out,
+    output [3:0] clkdiv_restart, sm_restart, sm_en // CTRL reg
+    input [3:0] tx_empty, tx_full, rx_empty, rx_full // FSTAT reg
     input [3:0] tx_stall, tx_over, rx_under, rx_stall, // FDEBUG reg
-    input [7:0] irq_set, irq_clr // IRQ reg
+    input [3:0] rx [3:0], // FLEVEL reg
+    input [3:0] tx [3:0], // FLEVEL reg
+    input [7:0] irq_set, irq_clr, // IRQ reg
+    output [31:0] gpio_sync_bypass, // input_sync_bypass
     );
 
     // RW - Processor can read/write
@@ -21,6 +26,7 @@ module control_regfile(
     // WF - Write to hardware - likely the fifo buffers, etc.
     // RWF - Read from / write to hardware - likely the fifo buffers, etc.
     
+    // Registers
     reg [31:0] ctrl;                    // 0x000 - SC/RW
     reg [31:0] fstat;                   // 0x004 - RO
     reg [31:0] fdebug;                  // 0x008 - WC
@@ -40,6 +46,25 @@ module control_regfile(
     reg [31:0] irq0_inte, irq1_inte;    // 0x12C, 0x138 - RW
     reg [31:0] irq0_intf, irq1_intf;    // 0x130, 0x13C - RW
     reg [31:0] irq0_ints, irq1_ints;    // 0x134, 0x140 - RO
+
+    // HW input and output wire assignments
+    assign clkdiv_restart = ctrl[11:8];
+    assign sm_restart = ctrl[7:4];
+    assign sm_en = ctrl[3:0];
+    assign tx_empty = fstat[27:24];
+    assign tx_full = fstat[19:16];
+    assign rx_empty = fstat[11:8];
+    assign rx_full = fstat[3:0];
+    assign rx[3] = flevel[31:28];
+    assign tx[3] = flevel[27:24];
+    assign rx[2] = flevel[23:20];
+    assign tx[2] = flevel[19:16];
+    assign rx[1] = flevel[15:12];
+    assign tx[1] = flevel[11:8];
+    assign rx[0] = flevel[7:4];
+    assign tx[0] = flevel[3:0];
+    assign gpio_sync_bypass = input_sync_bypass[31:0];
+
     
     // Reads from the RW/RO/WC registers
     always @(read_addr) begin

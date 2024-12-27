@@ -4,24 +4,24 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 
 # TODOs
 
-[x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
+- [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.
-[ ] Add control registers
-[ ] Add FIFO buffers
-[ ] Add GPIO
-[x] Add scratch registers
-[ ] Add SPI controller
-[ ] Create instructions for programming the instruction memory and control registers
-[-] Implement instructions in the FSM
-[ ] Implement delay cycles
-[ ] Create integration tests
-[-] Unit test everything
-[ ] Separate 2 resets, global reset and soft reset (see note on fsm.v)
-[ ] Build an assembler, or import it to make testing easier
-[ ] Implement clock divider
-[ ] Document anything that is different than the PIO
-[ ] Create OSR and ISR
-[ ] Create interrupt controller
+- [ ] Add control registers
+- [ ] Add FIFO buffers
+- [ ] Add GPIO
+- [x] Add scratch registers
+- [ ] Add SPI controller
+- [ ] Create instructions for programming the instruction memory and control registers
+- [-] Implement instructions in the FSM
+- [ ] Implement delay cycles
+- [ ] Create integration tests
+- [-] Unit test everything
+- [ ] Separate 2 resets, global reset and soft reset (see note on fsm.v)
+- [ ] Build an assembler, or import it to make testing easier
+- [ ] Implement clock divider
+- [ ] Document anything that is different than the PIO
+- [ ] Create OSR and ISR
+- [ ] Create interrupt controller
 
 # Instruction Encoding Reference
 
@@ -296,3 +296,6 @@ Done means not only added to register file, but associated functionality impleme
 | 0x138 | IRQ1_INTE          | Control     |      |
 | 0x13C | IRQ1_INTF          | Control     |      |
 | 0x140 | IRQ1_INTS          | Control     |      |
+| TBD   | GPIO_CTRL          | TBD         |      |
+
+Register(s) need to be added to control GPIO directions and select which cores the pins are driven by. On the RP2040, the GPIO registers control these rather than the PIO registers, but we aren't going to import all of the GPIO functionality.
