@@ -298,4 +298,4 @@ Done means not only added to register file, but associated functionality impleme
 | 0x140 | IRQ1_INTS          | Control     |      |
 | TBD   | GPIO_CTRL          | TBD         |      |
 
-Register(s) need to be added to control GPIO directions and select which cores the pins are driven by. On the RP2040, the GPIO registers control these rather than the PIO registers, but we aren't going to import all of the GPIO functionality.
+Register(s) need to be added to control GPIO directions, pullup/pulldown, and select which cores the pins are driven by. On the RP2040, the GPIO registers control these rather than the PIO registers, but we aren't going to import all of the GPIO functionality.

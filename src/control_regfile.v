@@ -6,13 +6,13 @@ module control_regfile(
     input write_en,
     input [4:0] read_addr,
     output [31:0] data_out,
-    output [3:0] clkdiv_restart, sm_restart, sm_en // CTRL reg
-    input [3:0] tx_empty, tx_full, rx_empty, rx_full // FSTAT reg
+    output [3:0] clkdiv_restart, sm_restart, sm_en, // CTRL reg
+    input [3:0] tx_empty, tx_full, rx_empty, rx_full, // FSTAT reg
     input [3:0] tx_stall, tx_over, rx_under, rx_stall, // FDEBUG reg
     input [3:0] rx [3:0], // FLEVEL reg
     input [3:0] tx [3:0], // FLEVEL reg
     input [7:0] irq_set, irq_clr, // IRQ reg
-    output [31:0] gpio_sync_bypass, // input_sync_bypass
+    output [31:0] gpio_sync_bypass // input_sync_bypass
     );
 
     // RW - Processor can read/write

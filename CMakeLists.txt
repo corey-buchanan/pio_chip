@@ -10,6 +10,9 @@ set(SIM_SRCS
     src/instruction_regfile.v
     src/program_counter.v
     src/pio_core.v
+    src/gpio.v
+    src/control_regfile.v
+    src/output_arbitrator.v
 )
 
 set(UNIT_TEST_SRCS
@@ -19,12 +22,16 @@ set(UNIT_TEST_SRCS
     src/instruction_regfile.v
     src/program_counter.v
     src/pio_core.v
+    src/gpio.v
+    src/control_regfile.v
+    src/output_arbitrator.v
 )
 
 set(UNIT_TEST_C_SRCS
     tests/program_counter.cpp
     tests/instruction_regfile.cpp
     tests/fsm.cpp
+    tests/gpio.cpp
 )
 
 # Main sim
