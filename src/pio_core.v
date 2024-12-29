@@ -1,10 +1,14 @@
 module pio_core(
     input clk,
-    input rst
+    input rst,
+    input [31:0] gpio_input,
+    output [31:0] fsm_output [3:0],
+    output [31:0] fsm_drive [3:0]
     );
 
     reg [4:0] pc;
     reg [15:0] instruction;
+    reg [15:0] data_in;
     reg [4:0] write_addr;
     reg write_en;
 
@@ -14,6 +18,7 @@ module pio_core(
         write_en = 0;
     end
 
+    // Add the other FSMs later
     fsm fsm(
         .clk(clk),
         .rst(rst),

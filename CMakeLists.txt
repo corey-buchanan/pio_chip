@@ -32,6 +32,7 @@ set(UNIT_TEST_C_SRCS
     tests/instruction_regfile.cpp
     tests/fsm.cpp
     tests/gpio.cpp
+    tests/output_arbitrator.cpp
 )
 
 # Main sim

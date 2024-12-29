@@ -8,7 +8,7 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.
 - [ ] Add control registers
 - [ ] Add FIFO buffers
-- [ ] Add GPIO
+- [x] Add GPIO
 - [x] Add scratch registers
 - [ ] Add SPI controller
 - [ ] Create instructions for programming the instruction memory and control registers
@@ -298,4 +298,8 @@ Done means not only added to register file, but associated functionality impleme
 | 0x140 | IRQ1_INTS          | Control     |      |
 | TBD   | GPIO_CTRL          | TBD         |      |
 
+# Notes, things that might be different than RP2040 implementation etc.
+
 Register(s) need to be added to control GPIO directions, pullup/pulldown, and select which cores the pins are driven by. On the RP2040, the GPIO registers control these rather than the PIO registers, but we aren't going to import all of the GPIO functionality.
+
+Currently output arbitration is done at the chip level. It might be reasonable to break it up between the chip (muxing) and core (resolving FSM driver). But it's already written and tested among other things to get done, so I don't plan on changing it right now.

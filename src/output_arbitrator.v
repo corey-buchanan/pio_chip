@@ -13,32 +13,29 @@ reg [31:0] core_drive [3:0];
 // Core Output/Drive are indexed [core][bit]
 
 // Lowest indexed FSM gets priority for each core
-genvar a;
-generate
-integer i;
-    for (a = 0; a < 3; a = a + 1) begin
-        always @(*) begin
-            for (i = 0; i < 32; i = i + 1) begin
-                if (fsm_drive[a][0][i]) begin
-                    core_drive[a][i] = 1;
-                    core_output[a][i] = fsm_output[a][0][i];
-                end else if (fsm_drive[a][1][i]) begin
-                    core_drive[a][i] = 1;
-                    core_output[a][i] = fsm_output[a][1][i];
-                end else if (fsm_drive[a][2][i]) begin
-                    core_drive[a][i] = 1;
-                    core_output[a][i] = fsm_output[a][2][i];
-                end else if (fsm_drive[a][3][i]) begin
-                    core_drive[a][i] = 1;
-                    core_output[a][i] = fsm_output[a][3][i];
-                end else begin
-                    core_drive[a][i] = 0;
-                    core_output[a][i] = 0;
-                end
+integer a, i;
+always @(*) begin
+    for (a = 0; a < 4; a = a + 1) begin
+        for (i = 0; i < 32; i = i + 1) begin
+            if (fsm_drive[a][0][i]) begin
+                core_drive[a][i] = 1;
+                core_output[a][i] = fsm_output[a][0][i];
+            end else if (fsm_drive[a][1][i]) begin
+                core_drive[a][i] = 1;
+                core_output[a][i] = fsm_output[a][1][i];
+            end else if (fsm_drive[a][2][i]) begin
+                core_drive[a][i] = 1;
+                core_output[a][i] = fsm_output[a][2][i];
+            end else if (fsm_drive[a][3][i]) begin
+                core_drive[a][i] = 1;
+                core_output[a][i] = fsm_output[a][3][i];
+            end else begin
+                core_drive[a][i] = 0;
+                core_output[a][i] = 0;
             end
         end
     end
-endgenerate
+end
 
 // Select which core drives gpio
 integer j;

@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     pio_chip->clk = false;
 
     while (time < 100) {                 // Simulate 100 cycles
-        pio_chip->clk = !pio_chip->clk;            // Toggle clock signal
+        pio_chip->clk = !pio_chip->clk;       // Toggle clock signal
         pio_chip->eval();                     // Evaluate the design
         tfp->dump(time);                 // Dump signal states
         time += 5;                       // Increment simulation time
