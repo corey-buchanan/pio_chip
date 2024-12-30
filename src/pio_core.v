@@ -2,8 +2,8 @@ module pio_core(
     input clk,
     input rst,
     input [31:0] gpio_input,
-    output [31:0] fsm_output [3:0],
-    output [31:0] fsm_drive [3:0]
+    output reg [31:0] core_output,
+    output reg [31:0] core_drive
     );
 
     reg [4:0] pc;
@@ -24,6 +24,17 @@ module pio_core(
         .rst(rst),
         .instruction(instruction),
         .pc(pc)
+    );
+
+    // TODO - Wire these up to the FSMs
+    reg [31:0] fsm_output [3:0];
+    reg [31:0] fsm_drive [3:0];
+
+    fsm_output_arbitrator fsm_output_arbitrator(
+        .fsm_output(fsm_output),
+        .fsm_drive(fsm_drive),
+        .core_output(core_output),
+        .core_drive(core_drive)
     );
 
     instruction_regfile instruction_regfile(

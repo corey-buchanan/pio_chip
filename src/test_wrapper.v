@@ -18,8 +18,12 @@ module test_wrapper(
     output reg [31:0] in_data,
     inout [31:0] gpio,
     input [1:0] core_select [31:0],
-    input [31:0] fsm_output [3:0][3:0],
-    input [31:0] fsm_drive [3:0][3:0],
+    input [31:0] fsm_output [3:0],
+    input [31:0] fsm_drive [3:0],
+    output reg [31:0] fsm_core_output,
+    output reg [31:0] fsm_core_drive,
+    input [31:0] core_output [3:0],
+    input [31:0] core_drive [3:0],
     output reg [31:0] gpio_output,
     output reg [31:0] gpio_drive
     );
@@ -73,10 +77,17 @@ module test_wrapper(
         .gpio(gpio)
     );
 
-    output_arbitrator uut_output_arbitrator(
-        .core_select(core_select),
+    fsm_output_arbitrator fsm_output_arbitrator(
         .fsm_output(fsm_output),
         .fsm_drive(fsm_drive),
+        .core_output(fsm_core_output),
+        .core_drive(fsm_core_drive)
+    );
+
+    core_output_arbitrator uut_core_output_arbitrator(
+        .core_select(core_select),
+        .core_output(core_output),
+        .core_drive(core_drive),
         .gpio_output(gpio_output),
         .gpio_drive(gpio_drive)
     );

@@ -303,3 +303,5 @@ Done means not only added to register file, but associated functionality impleme
 Register(s) need to be added to control GPIO directions, pullup/pulldown, and select which cores the pins are driven by. On the RP2040, the GPIO registers control these rather than the PIO registers, but we aren't going to import all of the GPIO functionality.
 
 Currently output arbitration is done at the chip level. It might be reasonable to break it up between the chip (muxing) and core (resolving FSM driver). But it's already written and tested among other things to get done, so I don't plan on changing it right now.
+
+Interrupts may have to work slightly differently with a standalone chip. The tentative idea is to implement an interrupt pin that can be raised by the IRQ, and then the processor can inquire (via SPI) the source of the interrupt and clear it.

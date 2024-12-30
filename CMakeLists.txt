@@ -12,7 +12,8 @@ set(SIM_SRCS
     src/pio_core.v
     src/gpio.v
     src/control_regfile.v
-    src/output_arbitrator.v
+    src/fsm_output_arbitrator.v
+    src/core_output_arbitrator.v
 )
 
 set(UNIT_TEST_SRCS
@@ -24,7 +25,8 @@ set(UNIT_TEST_SRCS
     src/pio_core.v
     src/gpio.v
     src/control_regfile.v
-    src/output_arbitrator.v
+    src/fsm_output_arbitrator.v
+    src/core_output_arbitrator.v
 )
 
 set(UNIT_TEST_C_SRCS
@@ -32,7 +34,8 @@ set(UNIT_TEST_C_SRCS
     tests/instruction_regfile.cpp
     tests/fsm.cpp
     tests/gpio.cpp
-    tests/output_arbitrator.cpp
+    tests/fsm_output_arbitrator.cpp
+    tests/core_output_arbitrator.cpp
 )
 
 # Main sim
