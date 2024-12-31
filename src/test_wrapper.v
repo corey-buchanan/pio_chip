@@ -1,4 +1,5 @@
 module test_wrapper(
+    // TODO: Organize these a little better
     input clk,
     input rst,
     input [4:0] wrap_top, wrap_bottom,
@@ -25,7 +26,14 @@ module test_wrapper(
     input [31:0] core_output [3:0],
     input [31:0] core_drive [3:0],
     output reg [31:0] gpio_output,
-    output reg [31:0] gpio_drive
+    output reg [31:0] gpio_drive,
+    input [31:0] mov_in, fifo_in,
+    input mov_en, fifo_pull, shift_en,
+    input shiftdir, autopull,
+    input [4:0] shift_count, pull_thresh,
+    output reg [31:0] osr, osr_data_out,
+    output fifo_pulled,
+    output reg [5:0] output_shift_counter
     );
 
     initial begin
@@ -77,7 +85,7 @@ module test_wrapper(
         .gpio(gpio)
     );
 
-    fsm_output_arbitrator fsm_output_arbitrator(
+    fsm_output_arbitrator uut_fsm_output_arbitrator(
         .fsm_output(fsm_output),
         .fsm_drive(fsm_drive),
         .core_output(fsm_core_output),
@@ -91,5 +99,24 @@ module test_wrapper(
         .gpio_output(gpio_output),
         .gpio_drive(gpio_drive)
     );
+
+    output_shift_register uut_output_shift_register(
+        .clk(clk),
+        .rst(rst),
+        .mov_in(mov_in),
+        .mov_en(mov_en),
+        .fifo_in(fifo_in),
+        .fifo_pull(fifo_pull),
+        .data_out(osr_data_out),
+        .shift_en(shift_en),
+        .pull_thresh(pull_thresh),
+        .shiftdir(shiftdir),
+        .autopull(autopull),
+        .shift_count(shift_count),
+        .fifo_pulled(fifo_pulled),
+        .output_shift_counter(output_shift_counter)
+    );
+
+    assign osr = uut_output_shift_register.osr;
 
 endmodule
