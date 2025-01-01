@@ -46,8 +46,8 @@ module control_regfile(
     reg [31:0] flevel;                      // 0x00C - RO
     reg [31:0] irq;                         // 0x030 - WC
     reg [31:0] input_sync_bypass;           // 0x038 - RW
-    reg [31:0] dbg_padout;                  // 0x03C - RO
-    reg [31:0] dbg_padoe;                   // 0x040 - RO
+    // DBG_PADOUT (dbg_padout input)        // 0x03C - RO
+    // DBG_PADOE (dbg_padoe input)          // 0x040 - RO
     // DBG_CFGINFO (hardwired values)       // 0x044 - RO 
     reg [31:0] sm_clkdiv [0:3];             // 0x0C8, Ox0E0, Ox0F8, 0x110 - RW
     reg [31:0] sm_execctrl [0:3];           // 0x0CC, 0x0E4, 0x0FC, 0x114 - RO/RW
@@ -95,6 +95,7 @@ module control_regfile(
             9'h004: data_out = fstat;
             9'h008: data_out = fdebug;
             9'h00C: data_out = flevel;
+            9'h030: data_out = irq;
             9'h038: data_out = input_sync_bypass;
             9'h03C: data_out = dbg_padout;
             9'h040: data_out = dbg_padoe;
@@ -189,6 +190,24 @@ module control_regfile(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             // TODO - write the default state of all registers
+            ctrl <= 32'b0;
+            fstat <= 32'h0F000F00;
+            fdebug <= 32'b0;
+            flevel <= 32'b0;
+            irq <= 32'b0;
+            input_sync_bypass <= 32'b0;
+            for (int i = 0; i < 4; i = i + 1) begin
+                sm_clkdiv [i] <= 32'h00010000;
+                sm_execctrl [i] <= 32'h0001F000;
+                sm_shiftctrl [i] <= 32'h000C0000;
+                sm_pinctrl [i] <= 32'h14000000;
+            end
+            irq0_inte <= 32'b0;
+            irq1_inte <= 32'b0;
+            irq0_intf <= 32'b0;
+            irq1_intf <= 32'b0;
+            irq0_ints <= 32'b0;
+            irq1_ints <= 32'b0;
         end else if (write_en) begin
             case (write_addr)
                 9'h000: ctrl[3:0] <= data_in[3:0];

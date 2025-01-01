@@ -6,7 +6,7 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 
 - [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.
-- [ ] Add control registers
+- [x] Add control registers
 - [ ] Add FIFO buffers
 - [x] Add GPIO
 - [x] Add scratch registers
@@ -20,7 +20,8 @@ I'm trying to create something similar to the RPI Programmable I/O, but as a sta
 - [ ] Build an assembler, or import it to make testing easier
 - [ ] Implement clock divider
 - [ ] Document anything that is different than the PIO
-- [ ] Create OSR and ISR
+- [x] Add OSR
+- [ ] Add ISR
 - [ ] Create interrupt controller
 
 # Instruction Encoding Reference
