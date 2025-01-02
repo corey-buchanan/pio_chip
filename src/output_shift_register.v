@@ -83,6 +83,9 @@ always @(posedge clk or posedge rst) begin
                     data_out = {data_out[30:0], osr[i-1]}; // Use blocking assignment to allow accumulation
                 end
 
+                //data_out[5:0] = true_shift_count;
+                //data_out = osr;
+
                 if (autopull && (current_shift_counter >= pull_threshold)) begin
                     // Shift into the right side of OSR
                     for (int i = 0; i < current_shift_counter; i = i + 1) begin
@@ -96,6 +99,9 @@ always @(posedge clk or posedge rst) begin
             end
 
             output_shift_counter <= (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
+        end else begin
+            osr = osr;
+            fifo_pulled <= 0;
         end
     end
 end
