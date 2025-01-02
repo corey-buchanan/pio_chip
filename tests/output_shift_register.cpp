@@ -49,13 +49,17 @@ TEST_F(OutputShiftRegisterTests, MovFillsEmptyOsr) {
     uut->mov_in = 0x01234567;
     AdvanceOneCycle();
 
-    // Don't change value if mov_en isn't set
-    EXPECT_EQ(uut->osr, 0x00000000);
+    EXPECT_EQ(uut->osr, 0x00000000); // Don't change value if mov_en isn't set
 
     uut->mov_en = 1;
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x01234567);
+
+    uut->mov_en = 0;
+    AdvanceOneCycle();
+
+    EXPECT_EQ(uut->osr, 0x01234567); // Test persistence
 }
 
 TEST_F(OutputShiftRegisterTests, MovReplacesFullOsr) {
@@ -74,13 +78,15 @@ TEST_F(OutputShiftRegisterTests, MovReplacesFullOsr) {
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut) {
-    uut->osr = 0x87654321;
+    uut->mov_in = 0x87654321;
+    uut->mov_en = 1;
     uut->eval();
     AdvanceOneCycle();
     EXPECT_EQ(uut->osr, 0x87654321);
 
     // Shift count of 32
     uut->shift_en = 1;
+    uut->mov_en = 0;
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00000000);
