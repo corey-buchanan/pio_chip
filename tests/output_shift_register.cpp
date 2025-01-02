@@ -63,12 +63,9 @@ TEST_F(OutputShiftRegisterTests, MovFillsEmptyOsr) {
 }
 
 TEST_F(OutputShiftRegisterTests, MovReplacesFullOsr) {
-    uut->osr = 0xBEEEEEEF;
-    uut->eval();
-    
-    // Ensure we can preload the OSR
-    // Not part of the chip, just a function of the simulation
-    EXPECT_EQ(uut->osr, 0xBEEEEEEF);
+    uut->mov_in = 0xBEEEEEEF;
+    uut->mov_en = 1;
+    AdvanceOneCycle();
 
     uut->mov_in = 0xC4C4C4C4;
     uut->mov_en = 1;
@@ -78,6 +75,7 @@ TEST_F(OutputShiftRegisterTests, MovReplacesFullOsr) {
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut) {
+    // Initial value
     uut->mov_in = 0x87654321;
     uut->mov_en = 1;
     uut->eval();
@@ -91,6 +89,71 @@ TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut) {
 
     EXPECT_EQ(uut->osr, 0x00000000);
     EXPECT_EQ(uut->osr_data_out, 0x87654321);
+
+    // Set up next initial value
+    uut->mov_in = 0x87654321;
+    uut->mov_en = 1;
+    uut->shift_en = 0;
+    AdvanceOneCycle();
+
+    // TODO: Figure out if osr should hold output values between shifts
+    // EXPECT_EQ(uut->osr_data_out, 0x87654321);
+    EXPECT_EQ(uut->osr_data_out, 0x00000000);
+
+    // Shift count of 4
+    uut->mov_en = 0;
+    uut->shift_count = 0x04;
+    uut->shift_en = 1;
+    AdvanceOneCycle();
+
+    EXPECT_EQ(uut->osr, 0x76543210);
+    EXPECT_EQ(uut->osr_data_out, 0x00000008);
+
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x65432100);
+    EXPECT_EQ(uut->osr_data_out, 0x00000007);
+}
+
+TEST_F(OutputShiftRegisterTests, OutShiftsWeirdNumberOfBitsToDataOut) {
+    // Set up next initial value
+    uut->mov_in = 0xFFFFFFFF;
+    uut->mov_en = 1;
+    uut->shift_en = 0;
+    AdvanceOneCycle();
+
+    // Shift count of 31
+    uut->mov_en = 0;
+    uut->shift_count = 0x1F;
+    uut->shift_en = 1;
+    AdvanceOneCycle();
+
+    EXPECT_EQ(uut->osr, 0x80000000);
+    EXPECT_EQ(uut->osr_data_out, 0x7FFFFFFF);
+
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x00000000);
+    EXPECT_EQ(uut->osr_data_out, 0x40000000);
+}
+
+TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut1By1) {
+    // Shifting by >= length of int is undefined behavior in C++, so we use long type
+    unsigned long bit_stream = 0x897AF101;
+    uut->mov_in = bit_stream;
+    uut->mov_en = 1;
+    uut->shift_en = 0;
+    AdvanceOneCycle();
+
+    // Shift count of 1
+    uut->mov_en = 0;
+    uut->shift_count = 0x01;
+    uut->shift_en = 1;
+    
+    for (int i = 1; i <= 32; i++) {
+        bool expected = bit_stream >> (32 - i) & 0b1;
+        AdvanceOneCycle();
+        EXPECT_EQ(uut->osr, bit_stream << i & 0xFFFFFFFF);
+        EXPECT_EQ(uut->osr_data_out, expected);
+    }
 }
 
 TEST_F(OutputShiftRegisterTests, DataOutClearedBetweenShifts) {

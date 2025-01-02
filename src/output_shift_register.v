@@ -30,77 +30,105 @@ always @(*) begin
     current_shift_counter = (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
 end
 
+integer i;
+
 always @(posedge clk or posedge rst) begin
     if (rst) begin
-        data_out = 32'b0;
-        osr = 32'b0;
+        data_out <= 32'b0;
+        osr <= 32'b0;
         output_shift_counter <= 6'd32;
         fifo_pulled <= 0;
     end else begin
-        data_out = 32'b0; // Clear data_out before shifting values to it
-
         // Fortunately mov_en, fifo_pull, and shift_en are mutually exclusive because only
         // one instruction can execute at a time. However, autopull can occur whenever there
         // is an OUT instruction
         if (mov_en) begin
-            osr = mov_in;
+            data_out <= 32'b0;
+            osr <= mov_in;
             output_shift_counter <= 6'd0;
             fifo_pulled <= 0;
         end else if (fifo_pull) begin
+            data_out <= 32'b0;
             if (shiftdir) begin
                 // Shift into the left side of OSR
                 for (int i = 0; i < current_shift_counter; i = i + 1) begin
-                    osr = {fifo_in[i], osr[31:1]}; // Use blocking assignment to allow accumulation
+                    for (int i = 0; i < 32; i = i + 1) begin
+                        if (i < 32 - {26'b0, current_shift_counter}) begin
+                            osr[i] <= osr[i];
+                        end else begin
+                            osr[i] <= fifo_in[i - (32 - {26'b0, current_shift_counter})];
+                        end
+                    end
                 end
             end else begin
                 // Shift into the right side of OSR
-                for (int i = 0; i < current_shift_counter; i = i + 1) begin
-                    osr = {osr[30:0], fifo_in[i]}; // Use blocking assignment to allow accumulation
+                for (int i = 0; i < 32; i = i + 1) begin
+                    if (i < current_shift_counter) begin
+                        osr[i] <= fifo_in[i];
+                    end else begin
+                        osr[i] <= osr[i];
+                    end
                 end
             end
             output_shift_counter <= 6'd0;
             fifo_pulled <= 1;
         end
-        else if (shift_en) begin            
+        else if (shift_en) begin
             if (shiftdir) begin
-                // Shift right
-                for (int i = 0; i < true_shift_count; i = i + 1) begin
-                    data_out = {data_out[30:0], osr[i]}; // Use blocking assignment to allow accumulation
+                // Shift osr bits right into right side of data_out
+                for (i = 0; i < 32; i = i + 1) begin
+                    if (i + {26'b0, true_shift_count} < 32) begin
+                        data_out[i] <= 1'b0;
+                    end else begin
+                        data_out[i] <= osr[{26'b0, true_shift_count} - i - 1];
+                    end
                 end
+
                 if (autopull && (current_shift_counter >= pull_threshold)) begin
                     // Shift into the left side of OSR
-                    for (int i = 0; i < current_shift_counter; i = i + 1) begin
-                        osr = {fifo_in[i], osr[31:1]}; // Use blocking assignment to allow accumulation
+                    for (int i = 0; i < 32; i = i + 1) begin
+                        if (i < 32 - {26'b0, current_shift_counter}) begin
+                            osr[i] <= osr[i + {26'b0, true_shift_count}];
+                        end else begin
+                            osr[i] <= fifo_in[i - (32 - {26'b0, current_shift_counter})];
+                        end
                     end
                     fifo_pulled <= 1;
                 end else begin
-                    osr = osr >> true_shift_count;
+                    osr <= osr >> true_shift_count;
                     fifo_pulled <= 0;
                 end
             end else begin
-                // Shift left
-                for (int i = 32; i > 32 - {26'b0, true_shift_count}; i = i - 1) begin
-                    data_out = {data_out[30:0], osr[i-1]}; // Use blocking assignment to allow accumulation
-                end
-
-                //data_out[5:0] = true_shift_count;
-                //data_out = osr;
+                // Shift osr bits left into right side of data_out
+                data_out <= osr >> (32 - {26'b0, true_shift_count});
+                // for (i = 0; i < 32; i = i + 1) begin
+                //     if (i + {26'b0, true_shift_count} < 32) begin
+                //         data_out[i] <= 1'b0;
+                //     end else begin
+                //         data_out[i] <= osr[i + (32 - {26'b0, true_shift_count})];
+                //     end
+                // end
 
                 if (autopull && (current_shift_counter >= pull_threshold)) begin
                     // Shift into the right side of OSR
-                    for (int i = 0; i < current_shift_counter; i = i + 1) begin
-                        osr = {osr[30:0], fifo_in[i]}; // Use blocking assignment to allow accumulation
+                    for (int i = 0; i < 32; i = i + 1) begin
+                        if (i < current_shift_counter) begin
+                            osr[i] <= fifo_in[i];
+                        end else begin
+                            osr[i] <= osr[i - {26'b0, true_shift_count}];
+                        end
                     end
+
                     fifo_pulled <= 1;
                 end else begin
-                    osr = osr << true_shift_count;
+                    osr <= osr << true_shift_count;
                     fifo_pulled <= 0;
                 end
             end
 
             output_shift_counter <= (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
         end else begin
-            osr = osr;
+            data_out <= 32'b0;
             fifo_pulled <= 0;
         end
     end
