@@ -1,6 +1,7 @@
 module fsm(
     input clk,
     input rst,
+    // input [1:0] fifo_pull_en,
     input [15:0] instruction,
     output reg [4:0] pc
     );
@@ -31,6 +32,10 @@ module fsm(
         .pc_en(pc_en),
         .pc(pc)
     );
+
+    // FIFO Management
+    reg [1:0] almost_empty_last_cycle;
+    reg [1:0] almost_full_last_cycle;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -95,6 +100,16 @@ module fsm(
                 // PUSH
 
                 // PULL
+                // We will need similar logic to this for the autopull
+                // if (almost_empty && !push_en) begin
+                //     almost_empty_last_cycle <= 1; // Almost empty, nothing added
+                // end else if (almost_empty && push_en) begin
+                //     almost_empty_last_cycle <= 0; // Was almost empty, won't be
+                // end else if (almost_empty_last_cycle && push_en) begin
+                //     almost_empty_last_cycle <= 1; // Still almost empty, can pull
+                // end else begin
+                //     almost_empty_last_cycle <= 0; // Not almost empty
+                // end
 
                 // MOV
 

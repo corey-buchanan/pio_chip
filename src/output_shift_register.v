@@ -2,7 +2,8 @@ module output_shift_register(
     input clk,
     input rst,
     input [31:0] mov_in,
-    input mov_en, // via MOV instruction
+    output reg [31:0] mov_out,
+    input [1:0] mov, // via MOV instruction - bit 1 set - osr as src, bit 0 set - osr as dest
     input [31:0] fifo_in,
     input fifo_pull, // via PULL instruction
     output reg [31:0] data_out,
@@ -19,6 +20,33 @@ reg [31:0] osr;
 reg [5:0] pull_threshold;
 reg [5:0] true_shift_count;
 reg [5:0] current_shift_counter;
+
+// From the PIO spec:
+//
+// Non-out cycles
+// 1 if MOV or PULL:
+// 2    osr count = 0
+// 3
+// 4 if osr count >= threshold:
+// 5    if tx fifo not empty:
+// 6        osr = pull()
+// 7        osr count = 0
+
+// OUT cycles
+//  1 if osr count >= threshold:
+//  2   if tx fifo not empty:
+//  3       osr = pull()
+//  4       osr count = 0
+//  5   stall
+//  6 else:
+//  7   output(osr)
+//  8   osr = shift(osr, out count)
+//  9   osr count = saturate(osr count + out count)
+// 10
+// 11 if osr count >= threshold:
+// 12    if tx fifo not empty:
+// 13        osr = pull()
+// 14        osr count = 0
 
 always @(*) begin
     if (pull_thresh == 0) pull_threshold = 6'd32;
@@ -42,29 +70,30 @@ always @(posedge clk or posedge rst) begin
         // Fortunately mov_en, fifo_pull, and shift_en are mutually exclusive because only
         // one instruction can execute at a time. However, autopull can occur whenever there
         // is an OUT instruction
-        if (mov_en) begin
-            data_out <= 32'b0;
+        if (mov[0]) begin
+            // OSR as DEST
             osr <= mov_in;
             output_shift_counter <= 6'd0;
             fifo_pulled <= 0;
+        end else if (mov[1]) begin
+            // OSR as SRC
+            // Can be non-deterministic with autopull enabled, use PULL as a fence
+            mov_out <= osr;
         end else if (fifo_pull) begin
-            data_out <= 32'b0;
             if (shiftdir) begin
                 // Shift into the left side of OSR
-                for (int i = 0; i < current_shift_counter; i = i + 1) begin
-                    for (int i = 0; i < 32; i = i + 1) begin
-                        if (i < 32 - {26'b0, current_shift_counter}) begin
-                            osr[i] <= osr[i];
-                        end else begin
-                            osr[i] <= fifo_in[i - (32 - {26'b0, current_shift_counter})];
-                        end
+                for (i = 0; i < 32; i = i + 1) begin
+                    if (i < 32 - {26'b0, output_shift_counter}) begin
+                        osr[i] <= osr[i];
+                    end else begin
+                        osr[i] <= fifo_in[i - (32 - {26'b0, output_shift_counter})];
                     end
                 end
             end else begin
                 // Shift into the right side of OSR
-                for (int i = 0; i < 32; i = i + 1) begin
-                    if (i < current_shift_counter) begin
-                        osr[i] <= fifo_in[i];
+                for (i = 0; i < 32; i = i + 1) begin
+                    if (i < output_shift_counter) begin
+                        osr[i] <= fifo_in[{26'b0, output_shift_counter} - i - 1];
                     end else begin
                         osr[i] <= osr[i];
                     end
@@ -77,58 +106,51 @@ always @(posedge clk or posedge rst) begin
             if (shiftdir) begin
                 // Shift osr bits right into right side of data_out
                 for (i = 0; i < 32; i = i + 1) begin
-                    if (i + {26'b0, true_shift_count} < 32) begin
-                        data_out[i] <= 1'b0;
-                    end else begin
+                    if (i < true_shift_count) begin
                         data_out[i] <= osr[{26'b0, true_shift_count} - i - 1];
+                    end else begin
+                        data_out[i] <= 1'b0;
                     end
                 end
 
                 if (autopull && (current_shift_counter >= pull_threshold)) begin
                     // Shift into the left side of OSR
-                    for (int i = 0; i < 32; i = i + 1) begin
+                    for (i = 0; i < 32; i = i + 1) begin
                         if (i < 32 - {26'b0, current_shift_counter}) begin
                             osr[i] <= osr[i + {26'b0, true_shift_count}];
                         end else begin
                             osr[i] <= fifo_in[i - (32 - {26'b0, current_shift_counter})];
                         end
                     end
+                    output_shift_counter <= 6'd0;
                     fifo_pulled <= 1;
                 end else begin
                     osr <= osr >> true_shift_count;
+                    output_shift_counter <= (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
                     fifo_pulled <= 0;
                 end
             end else begin
                 // Shift osr bits left into right side of data_out
                 data_out <= osr >> (32 - {26'b0, true_shift_count});
-                // for (i = 0; i < 32; i = i + 1) begin
-                //     if (i + {26'b0, true_shift_count} < 32) begin
-                //         data_out[i] <= 1'b0;
-                //     end else begin
-                //         data_out[i] <= osr[i + (32 - {26'b0, true_shift_count})];
-                //     end
-                // end
 
                 if (autopull && (current_shift_counter >= pull_threshold)) begin
                     // Shift into the right side of OSR
                     for (int i = 0; i < 32; i = i + 1) begin
                         if (i < current_shift_counter) begin
-                            osr[i] <= fifo_in[i];
+                            osr[i] <= fifo_in[{26'b0, current_shift_counter} - i - 1];
                         end else begin
                             osr[i] <= osr[i - {26'b0, true_shift_count}];
                         end
                     end
-
+                    output_shift_counter <= 6'd0;
                     fifo_pulled <= 1;
                 end else begin
                     osr <= osr << true_shift_count;
+                    output_shift_counter <= (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
                     fifo_pulled <= 0;
                 end
             end
-
-            output_shift_counter <= (output_shift_counter + true_shift_count > 32) ? 6'd32 : output_shift_counter + true_shift_count;
         end else begin
-            data_out <= 32'b0;
             fifo_pulled <= 0;
         end
     end

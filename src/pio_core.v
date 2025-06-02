@@ -30,6 +30,10 @@ module pio_core(
     reg [31:0] fsm_output [3:0];
     reg [31:0] fsm_drive [3:0];
 
+    // TODO Add fifos
+
+    // TODO Add OSR
+
     fsm_output_arbitrator fsm_output_arbitrator(
         .fsm_output(fsm_output),
         .fsm_drive(fsm_drive),

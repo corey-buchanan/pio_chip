@@ -2,6 +2,27 @@
 
 I'm trying to create something similar to the RPI Programmable I/O, but as a standalone chip. I plan to implement compatible instructions such that programs can be easily be ported over.
 
+# Running the project
+
+Build:
+
+```
+cmake -B build
+cmake --build build
+```
+
+Test:
+```
+./build/bin/unit_tests
+```
+
+or
+
+```
+cd build
+ctest
+```
+
 # TODOs
 
 - [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
