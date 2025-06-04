@@ -1,3 +1,5 @@
+// TODO - Pack these into a few different structs
+
 module control_regfile(
     input clk,
     input rst,

@@ -24,13 +24,49 @@ module pio_core(
         .rst(rst),
         .instruction(instruction),
         .pc(pc)
+        // TODO - add fifo push/pop en, status, etc.
     );
 
     // TODO - Wire these up to the FSMs
     reg [31:0] fsm_output [3:0];
     reg [31:0] fsm_drive [3:0];
 
-    // TODO Add fifos
+    // TODO - Wire signals up to fsm
+    // These FIFOs are reversable, will need to store direction
+    // the names right now refer to their default direction
+    // I'll have a look at the docs to see if that's the best way
+    // to name these fifos
+    reg [31:0] tx_data_in;
+    reg tx_push_en;
+    reg tx_pop_en;
+    reg [31:0] tx_data_out;
+    reg [3:0] tx_status;
+
+    reg [31:0] rx_data_in;
+    reg rx_push_en;
+    reg rx_pop_en;
+    reg [31:0] rx_data_out;
+    reg [3:0] rx_status;
+
+    fifo tx_fifo (
+        .clk(clk),
+        .rst(rst),
+        .data_in(tx_data_in),
+        .push_en(tx_push_en),
+        .pop_en(tx_pop_en),
+        .data_out(tx_data_out),
+        .status(tx_status)
+    );
+
+    fifo rx_fifo (
+        .clk(clk),
+        .rst(rst),
+        .data_in(gpio_input),
+        .push_en(1),
+        .pop_en(1),
+        .data_out(rx_data_out),
+        .status(rx_status)
+    );
 
     // TODO Add OSR
 

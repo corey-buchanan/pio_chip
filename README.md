@@ -25,10 +25,12 @@ ctest
 
 # TODOs
 
+- [ ] Convert to System Verilog, using its useful extensions - we can try to bundle and better name the myriad of wires
+- [ ] Add UVM testbenches - may not be necessary at this point, but I want to study UVM
 - [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.
 - [x] Add control registers
-- [ ] Add FIFO buffers
+- [x] Add FIFO buffers
 - [x] Add GPIO
 - [x] Add scratch registers
 - [ ] Add SPI controller

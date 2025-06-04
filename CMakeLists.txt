@@ -10,12 +10,12 @@ set(SIM_SRCS
     src/instruction_regfile.v
     src/program_counter.v
     src/pio_core.v
-    src/gpio.v
+    src/gpio.sv
     src/control_regfile.v
     src/fsm_output_arbitrator.v
     src/core_output_arbitrator.v
     src/output_shift_register.v
-    src/fifo.v
+    src/fifo.sv
 )
 
 set(UNIT_TEST_SRCS
@@ -25,12 +25,12 @@ set(UNIT_TEST_SRCS
     src/instruction_regfile.v
     src/program_counter.v
     src/pio_core.v
-    src/gpio.v
+    src/gpio.sv
     src/control_regfile.v
     src/fsm_output_arbitrator.v
     src/core_output_arbitrator.v
     src/output_shift_register.v
-    src/fifo.v
+    src/fifo.sv
 )
 
 set(UNIT_TEST_C_SRCS
