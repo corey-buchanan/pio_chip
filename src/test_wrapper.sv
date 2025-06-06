@@ -35,7 +35,16 @@ module test_wrapper(
     input [4:0] shift_count, pull_thresh,
     output reg [31:0] osr, osr_data_out,
     output fifo_pulled,
-    output reg [5:0] output_shift_counter
+    output reg [5:0] output_shift_counter,
+    input logic push_en,
+    input logic pop_en,
+    output logic [31:0] fifo_out,
+    output logic empty,
+    output logic full,
+    output logic [2:0] fifo_count,
+    output [31:0] fifo_memory [0:3],
+    output logic [1:0] fifo_head,
+    output logic [1:0] fifo_tail
     );
 
     initial begin
@@ -121,5 +130,29 @@ module test_wrapper(
     );
 
     assign osr = uut_output_shift_register.osr;
+
+    fifo uut_fifo(
+        .clk(clk),
+        .rst(rst),
+        .data_in(fifo_in),
+        .push_en(push_en),
+        .pop_en(pop_en),
+        .data_out(fifo_out),
+        .status(status),
+        .fifo_count(fifo_count)
+    );
+
+    // TODO - make a typedef file
+    typedef struct packed {
+        logic empty, full;
+    } fifo_status;
+
+    fifo_status status;
+    assign empty = status.empty;
+    assign full = status.full;
+
+    assign fifo_memory = uut_fifo.memory;
+    assign fifo_head = uut_fifo.head;
+    assign fifo_tail = uut_fifo.tail;
 
 endmodule

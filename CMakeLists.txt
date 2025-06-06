@@ -11,7 +11,7 @@ set(SIM_SRCS
     src/program_counter.v
     src/pio_core.v
     src/gpio.sv
-    src/control_regfile.v
+    src/control_regfile.sv
     src/fsm_output_arbitrator.v
     src/core_output_arbitrator.v
     src/output_shift_register.v
@@ -19,14 +19,14 @@ set(SIM_SRCS
 )
 
 set(UNIT_TEST_SRCS
-    src/test_wrapper.v
+    src/test_wrapper.sv
     src/pio_chip.v
     src/fsm.v
     src/instruction_regfile.v
     src/program_counter.v
     src/pio_core.v
     src/gpio.sv
-    src/control_regfile.v
+    src/control_regfile.sv
     src/fsm_output_arbitrator.v
     src/core_output_arbitrator.v
     src/output_shift_register.v

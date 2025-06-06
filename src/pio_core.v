@@ -40,13 +40,15 @@ module pio_core(
     reg tx_push_en;
     reg tx_pop_en;
     reg [31:0] tx_data_out;
-    reg [3:0] tx_status;
+    reg [1:0] tx_status;
+    reg [2:0] tx_fifo_count;
 
     reg [31:0] rx_data_in;
     reg rx_push_en;
     reg rx_pop_en;
     reg [31:0] rx_data_out;
-    reg [3:0] rx_status;
+    reg [1:0] rx_status;
+    reg [2:0] rx_fifo_count;
 
     fifo tx_fifo (
         .clk(clk),
@@ -55,7 +57,8 @@ module pio_core(
         .push_en(tx_push_en),
         .pop_en(tx_pop_en),
         .data_out(tx_data_out),
-        .status(tx_status)
+        .status(tx_status),
+        .fifo_count(tx_fifo_count)
     );
 
     fifo rx_fifo (
@@ -65,7 +68,8 @@ module pio_core(
         .push_en(1),
         .pop_en(1),
         .data_out(rx_data_out),
-        .status(rx_status)
+        .status(rx_status),
+        .fifo_count(rx_fifo_count)
     );
 
     // TODO Add OSR

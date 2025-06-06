@@ -1,5 +1,22 @@
 // TODO - Pack these into a few different structs
 
+typedef struct packed {
+    logic [3:0] clkdiv_restart, sm_restart, sm_en;
+} ctrl_reg_out_t;
+
+typedef struct packed {
+    logic [3:0] tx_empty, tx_full, rx_empty, rx_full;
+} fstat_reg_in_t;
+
+typedef struct packed {
+    logic [3:0] tx_stall, tx_over, rx_under, rx_stall;
+} fdebug_reg_in_t;
+
+typedef struct packed {
+    logic [3:0][3:0] rx;
+    logic [3:0][3:0] tx;
+} flevel_reg_in_t;
+
 module control_regfile(
     input clk,
     input rst,
@@ -8,11 +25,10 @@ module control_regfile(
     input write_en,
     input [4:0] read_addr,
     output [31:0] data_out,
-    output [3:0] clkdiv_restart, sm_restart, sm_en, // CTRL reg
-    input [3:0] tx_empty, tx_full, rx_empty, rx_full, // FSTAT reg
-    input [3:0] tx_stall, tx_over, rx_under, rx_stall, // FDEBUG reg
-    input [3:0] rx [3:0], // FLEVEL reg
-    input [3:0] tx [3:0], // FLEVEL reg
+    output ctrl_reg_out_t ctrl_out,
+    input fstat_reg_in_t fstat_in,
+    input fdebug_reg_in_t fdebug_in,
+    input flevel_reg_in_t flevel_in,
     input [7:0] irq_set, irq_clr, // IRQ reg
     output [31:0] gpio_sync_bypass, // INPUT_SYNC_BYPASS reg
     input [31:0] dbg_padout, // DBG_PADOUT reg
@@ -63,21 +79,21 @@ module control_regfile(
     reg [31:0] irq0_ints, irq1_ints;        // 0x134, 0x140 - RO
 
     // HW input and output wire assignments
-    assign clkdiv_restart = ctrl[11:8];
-    assign sm_restart = ctrl[7:4];
-    assign sm_en = ctrl[3:0];
-    assign tx_empty = fstat[27:24];
-    assign tx_full = fstat[19:16];
-    assign rx_empty = fstat[11:8];
-    assign rx_full = fstat[3:0];
-    assign rx[3] = flevel[31:28];
-    assign tx[3] = flevel[27:24];
-    assign rx[2] = flevel[23:20];
-    assign tx[2] = flevel[19:16];
-    assign rx[1] = flevel[15:12];
-    assign tx[1] = flevel[11:8];
-    assign rx[0] = flevel[7:4];
-    assign tx[0] = flevel[3:0];
+    assign ctrl_out.clkdiv_restart = ctrl[11:8];
+    assign ctrl_out.sm_restart = ctrl[7:4];
+    assign ctrl_out.sm_en = ctrl[3:0];
+    assign tx_empty = fstat_in.tx_empty;
+    assign tx_full = fstat_in.tx_full;
+    assign rx_empty = fstat_in.rx_empty;
+    assign rx_full = fstat_in.rx_full;
+    assign flevel_in.rx[3] = flevel[31:28];
+    assign flevel_in.tx[3] = flevel[27:24];
+    assign flevel_in.rx[2] = flevel[23:20];
+    assign flevel_in.tx[2] = flevel[19:16];
+    assign flevel_in.rx[1] = flevel[15:12];
+    assign flevel_in.tx[1] = flevel[11:8];
+    assign flevel_in.rx[0] = flevel[7:4];
+    assign flevel_in.tx[0] = flevel[3:0];
     assign gpio_sync_bypass = input_sync_bypass[31:0];
 
     genvar i;
@@ -180,10 +196,10 @@ module control_regfile(
     always @(posedge clk or posedge rst) begin
         if (rst) ; // Reset logic handled by RW/WO block
         else if (write_en) begin
-            fdebug[27:24] <= (fdebug[27:24] | tx_stall[3:0]) & ~(data_in[27:24] & {4{(write_addr == 9'h008 & write_en)}});
-            fdebug[19:16] <= (fdebug[19:16] | tx_over[3:0]) & ~(data_in[19:16] & {4{(write_addr == 9'h008 & write_en)}});
-            fdebug[11:8] <= (fdebug[11:8] | rx_under[3:0]) & ~(data_in[11:8] & {4{(write_addr == 9'h008 & write_en)}});
-            fdebug[3:0] <= (fdebug[3:0] | rx_stall[3:0]) & ~(data_in[3:0] & {4{(write_addr == 9'h008 & write_en)}});
+            fdebug[27:24] <= (fdebug[27:24] | fdebug_in.tx_stall[3:0]) & ~(data_in[27:24] & {4{(write_addr == 9'h008 & write_en)}});
+            fdebug[19:16] <= (fdebug[19:16] | fdebug_in.tx_over[3:0]) & ~(data_in[19:16] & {4{(write_addr == 9'h008 & write_en)}});
+            fdebug[11:8] <= (fdebug[11:8] | fdebug_in.rx_under[3:0]) & ~(data_in[11:8] & {4{(write_addr == 9'h008 & write_en)}});
+            fdebug[3:0] <= (fdebug[3:0] | fdebug_in.rx_stall[3:0]) & ~(data_in[3:0] & {4{(write_addr == 9'h008 & write_en)}});
             irq[7:0] <= (irq[7:0] | irq_set[7:0]) & ~irq_clr[7:0] & ~(data_in[7:0] & {8{(write_addr == 9'h008 & write_en)}});
         end
     end

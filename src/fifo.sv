@@ -1,5 +1,5 @@
 typedef struct packed {
-    logic empty, full, almost_empty, almost_full;
+    logic empty, full;
 } fifo_status;
 
 module fifo(
@@ -7,21 +7,23 @@ module fifo(
     input logic[31:0] data_in,
     input logic push_en, pop_en,
     output logic [31:0] data_out,
-    output fifo_status status
+    output fifo_status status,
+    output logic [2:0] fifo_count // 0-4
 );
 
-assign status.empty = head == tail;
-assign status.full = wrap_around & (head[1:0] == tail[1:0]);
-assign wrap_around = head[2] ^ tail[2];
-
-assign status.almost_empty = tail + 1 == head;
-assign status.almost_full = wrap_around & (head[1:0] + 1 == tail[1:0]);
+assign status.empty = fifo_count == 3'b000;
+assign status.full = fifo_count == 3'b100;
 
 // Read from head, write to tail
 logic [31:0] memory [0:3];
-logic [2:0] head, tail;
-logic wrap_around;
+logic [1:0] head, tail;
 
+logic can_push, can_pop;
+
+assign can_push = push_en && !status.full;
+assign can_pop = pop_en && !status.empty;
+
+// FIFO memory and pointer logic
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         // Clear all the memory
@@ -29,19 +31,34 @@ always @(posedge clk or posedge rst) begin
             memory[i] <= 32'b0;
         end
         // Reset pointers and flags
-        head <= 3'b000;
-        tail <= 3'b000;
+        head <= 2'b00;
+        tail <= 2'b00;
         data_out <= 32'b0;
     end else begin
         // Push
-        if (push_en && !status.full) begin
-            memory[head[1:0]] <= data_in;
+        if (can_push) begin
+            memory[head] <= data_in;
             head <= head + 1;
         end
         // Pop
-        if (pop_en && !status.empty) begin
-            data_out <= memory[tail[1:0]];
+        if (can_pop) begin
+            data_out <= memory[tail];
             tail <= tail + 1;
+        end
+    end
+end
+
+// Counter logic
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        fifo_count <= 3'b000;
+    end else begin
+        if (can_push && can_pop) begin
+            fifo_count <= fifo_count;
+        end else if (can_push) begin
+            fifo_count <= fifo_count + 1;
+        end else if (can_pop) begin
+            fifo_count <= fifo_count - 1;
         end
     end
 end
