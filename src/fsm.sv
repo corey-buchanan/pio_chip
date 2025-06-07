@@ -36,6 +36,9 @@ module fsm(
         .pc(pc)
     );
 
+    // FIFO Management
+    // TODO: Split empty_next_cycle and full_next_cycle by TX and RX
+    logic empty_next_cycle, full_next_cycle; // TODO: Figure out what to do on non-push/pull instructions, interactions w/ autopull
     logic pull_op, push_op;
     logic [31:0] rx_data_in, tx_data_out;
     logic [1:0] tx_status, rx_status;
@@ -63,9 +66,27 @@ module fsm(
         .fifo_count(tx_fifo_count)
     );
 
-    // FIFO Management
-    logic [1:0] almost_empty_last_cycle;
-    logic [1:0] almost_full_last_cycle;
+    // OSR Management
+    logic [31:0] osr_mov_in;
+    logic [1:0] osr_mov;
+
+    output_shift_register osr(
+        .clk(clk),
+        .rst(rst),
+        .mov_in(osr_mov_in),
+        .mov_out(),
+        .mov(osr_mov),
+        .fifo_in(tx_data_out),
+        .fifo_pull(),
+        .data_out(),
+        .shift_en(),
+        .pull_thresh(),
+        .shiftdir(),
+        .autopull(),
+        .shift_count(),
+        .fifo_pulled(),
+        .output_shift_counter()
+    );
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -135,20 +156,62 @@ module fsm(
 
                 // OUT
 
-                // PUSH
+                // TODO - I may need to draw this out as a[n] [extended] state graph - it's getting a bit complex
+                PUSH_PULL: begin
+                    if (!instruction[7]) begin
+                        // PUSH
 
-                // PULL
-                // TODO - replace with logic that uses the counter
-                // We will need similar logic to this for the autopull
-                // if (almost_empty && !push_en) begin
-                //     almost_empty_last_cycle <= 1; // Almost empty, nothing added
-                // end else if (almost_empty && push_en) begin
-                //     almost_empty_last_cycle <= 0; // Was almost empty, won't be
-                // end else if (almost_empty_last_cycle && push_en) begin
-                //     almost_empty_last_cycle <= 1; // Still almost empty, can pull
-                // end else begin
-                //     almost_empty_last_cycle <= 0; // Not almost empty
-                // end
+                    end
+                    else begin
+                        // PULL
+                        jump_en <= 0;
+                        if (instruction[5]) begin
+                            // Block = 1 - stall if TX FIFO is empty
+                        end else begin
+                            // Block = 0 - pull from empty means copy scratch X to OSR
+                        end
+                        
+                        if (instruction[6]) begin
+                            // IfEmpty = 1 - do nothing unless total output shift count > autopull threshold
+                        end
+                        // We will need similar logic to this for the autopull
+                        if ((tx_fifo_count == 1 && !external_push_en)
+                            || (empty_next_cycle && !external_push_en)) begin
+                            empty_next_cycle <= 1; // Empty from last cycle, can't pull
+                            if (instruction[6]) begin
+                                // Do nothing
+                                pc_en <= 1;
+                            end else begin
+                                if (instruction[5]) begin
+                                    // Stall
+                                    pc_en <= 0;
+                                end else begin
+                                    // Copy X to OSR
+                                    // TODO - wire up osr_mov_in, osr_mov in other cases
+                                    osr_mov_in <= x;
+                                    osr_mov <= 2'b01;
+                                    pc_en <= 1;
+                                end
+                            end
+                        end else begin 
+                            if (empty_next_cycle && external_push_en) begin
+                                empty_next_cycle <= 1; // Will be empty, but we can pull
+                            end else begin
+                                empty_next_cycle <= 0; // Not empty, so we can pull
+                            end
+                            // Can pull
+                            // TODO - wire up osr_output_shift_counter
+                            if (instruction[6] /* && osr_output_shift_counter < autopull_threshold */) begin
+                                // Do nothing because autopull threshold is not exceeded
+                                pc_en <= 1;
+                            end else begin 
+                                // Pull from TX FIFO
+                                pull_op <= 1;
+                                pc_en <= 1;
+                            end
+                        end
+                    end
+                end
 
                 // MOV
 
