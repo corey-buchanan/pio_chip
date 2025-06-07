@@ -37,9 +37,7 @@ module fsm(
     );
 
     // FIFO Management
-    // TODO: Split empty_next_cycle and full_next_cycle by TX and RX
-    logic empty_next_cycle, full_next_cycle; // TODO: Figure out what to do on non-push/pull instructions, interactions w/ autopull
-    logic pull_op, push_op;
+    logic rx_push_en, tx_pop_en;
     logic [31:0] rx_data_in, tx_data_out;
     logic [1:0] tx_status, rx_status;
     logic [2:0] tx_fifo_count, rx_fifo_count;
@@ -48,7 +46,7 @@ module fsm(
         .clk(clk),
         .rst(rst),
         .data_in(rx_data_in),
-        .push_en(push_op),
+        .push_en(rx_push_en),
         .pop_en(external_pop_en),
         .data_out(external_data_out),
         .status(rx_status),
@@ -60,7 +58,7 @@ module fsm(
         .rst(rst),
         .data_in(external_data_in),
         .push_en(external_push_en),
-        .pop_en(push_op),
+        .pop_en(tx_pop_en),
         .data_out(tx_data_out),
         .status(tx_status),
         .fifo_count(tx_fifo_count)
@@ -88,10 +86,12 @@ module fsm(
         .output_shift_counter()
     );
 
+    // Logic for: jump, jump_en, pc_en
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            x <= 32'b0;
-            y <= 32'b0;
+            jump <= 5'b0;
+            jump_en <= 0;
+            pc_en <= 0;
         end
         else begin
             case (instruction[15:13])
@@ -149,6 +149,7 @@ module fsm(
                 WAIT: begin
                     // Do nothing for now
                     // We'll pretend it's a no-op instruction for the moment
+                    jump <= jump;
                     jump_en <= 0;
                     pc_en <= 1;
                 end
@@ -156,59 +157,36 @@ module fsm(
 
                 // OUT
 
-                // TODO - I may need to draw this out as a[n] [extended] state graph - it's getting a bit complex
                 PUSH_PULL: begin
+                    jump <= jump;
+                    jump_en <= 0;
                     if (!instruction[7]) begin
                         // PUSH
-
+                        if (rx_fifo_count == 4 && !external_pop_en) begin
+                            if (instruction[5]) begin
+                                // Block = 1 - stall if RX FIFO is full
+                                pc_en <= 0;
+                            end else begin
+                                // Block = 0 - do nothing
+                                pc_en <= 1;
+                            end
+                        end else begin
+                            pc_en <= 1;
+                        end
                     end
                     else begin
                         // PULL
-                        jump_en <= 0;
-                        if (instruction[5]) begin
-                            // Block = 1 - stall if TX FIFO is empty
-                        end else begin
-                            // Block = 0 - pull from empty means copy scratch X to OSR
-                        end
-                        
-                        if (instruction[6]) begin
-                            // IfEmpty = 1 - do nothing unless total output shift count > autopull threshold
-                        end
                         // We will need similar logic to this for the autopull
-                        if ((tx_fifo_count == 1 && !external_push_en)
-                            || (empty_next_cycle && !external_push_en)) begin
-                            empty_next_cycle <= 1; // Empty from last cycle, can't pull
-                            if (instruction[6]) begin
-                                // Do nothing
-                                pc_en <= 1;
+                        if (tx_fifo_count == 0 && !external_push_en) begin
+                            if (instruction[5]) begin
+                                // Block = 1 - stall if TX FIFO is empty
+                                pc_en <= 0;
                             end else begin
-                                if (instruction[5]) begin
-                                    // Stall
-                                    pc_en <= 0;
-                                end else begin
-                                    // Copy X to OSR
-                                    // TODO - wire up osr_mov_in, osr_mov in other cases
-                                    osr_mov_in <= x;
-                                    osr_mov <= 2'b01;
-                                    pc_en <= 1;
-                                end
-                            end
-                        end else begin 
-                            if (empty_next_cycle && external_push_en) begin
-                                empty_next_cycle <= 1; // Will be empty, but we can pull
-                            end else begin
-                                empty_next_cycle <= 0; // Not empty, so we can pull
-                            end
-                            // Can pull
-                            // TODO - wire up osr_output_shift_counter
-                            if (instruction[6] /* && osr_output_shift_counter < autopull_threshold */) begin
-                                // Do nothing because autopull threshold is not exceeded
-                                pc_en <= 1;
-                            end else begin 
-                                // Pull from TX FIFO
-                                pull_op <= 1;
+                                // Block = 0 - pull from empty means copy scratch X to OSR
                                 pc_en <= 1;
                             end
+                        end else begin
+                            pc_en <= 1;
                         end
                     end
                 end
@@ -216,10 +194,23 @@ module fsm(
                 // MOV
 
                 // IRQ
-
-                SET: begin
+                default: begin
+                    jump <= jump;
                     jump_en <= 0;
                     pc_en <= 1;
+                end
+            endcase
+        end
+    end
+
+    // Logic for x, y
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            x <= 32'b0;
+            y <= 32'b0;
+        end else begin
+            case (instruction[15:13])
+                SET: begin
                     case (instruction[7:5])
                         3'b001: begin
                             x[31:5] <= 27'b0;
@@ -234,8 +225,59 @@ module fsm(
                     endcase
                 end
                 default: begin
-                    jump_en <= 0;
-                    pc_en <= 1;
+                    x <= x;
+                    y <= y;
+                end
+            endcase
+        end
+    end
+
+    // Logic for tx_pop_en, rx_push_en
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            tx_pop_en <= 0;
+            rx_push_en <= 0;
+        end else begin
+            case (instruction[15:13])
+                // TODO: MOV, OUT
+                PUSH_PULL: begin
+                    if (!instruction[7]) begin
+                        // PUSH
+                        if (rx_fifo_count == 4 && !external_pop_en) begin
+                            // Can't push to FIFO
+                            rx_push_en <= 0; // TODO - wire up autopull logic for other instructions
+                        end else begin
+                            if (instruction[6] /* isr_input_shift_counter < autopush_threshold */) begin
+                                rx_push_en <= 0;
+                            end else begin
+                                rx_push_en <= 1;
+                            end
+                        end
+                    end
+                    else begin
+                        // PULL
+                        // We will need similar logic to this for the autopull
+                        if (tx_fifo_count == 0 && !external_push_en) begin
+                            // Can't pull from FIFO
+                            tx_pop_en <= 1; // TODO - Wire up autopull logic for other instructions
+                            if (!instruction[5]) begin
+                                // Block = 0 - pull from empty means copy scratch X to OSR
+                                // TODO - figure out where to put osr_mov_in, osr_mov logic
+                                osr_mov_in <= x;
+                                osr_mov <= 2'b01;
+                            end
+                        end else begin
+                            if (instruction[6] /* osr_output_shift_counter < autopull_threshold */) begin
+                                // IfEmpty = 1 - do nothing unless total output shift count > autopull threshold
+                                tx_pop_en <= 0;
+                            end else begin
+                                tx_pop_en <= 1;
+                            end
+                        end
+                    end
+                end
+                default: begin
+                    // TODO: Autopull logic for non MOV, PULL, OUT instructions
                 end
             endcase
         end
