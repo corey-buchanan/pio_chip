@@ -17,61 +17,25 @@ module pio_core(
         write_en = 0;
     end
 
+    // TODO: Wire these up properly
+    logic push_en, pop_en;
+    logic [31:0] fifo_in, fifo_out;
+
     // TODO: Add the other FSMs later
     fsm fsm(
         .clk(clk),
         .rst(rst),
+        .external_push_en(push_en),
+        .external_pop_en(pop_en),
+        .external_data_in(fifo_in),
         .instruction(instruction),
-        .pc(pc)
-        // TODO - add fifo push/pop en, status, etc.
+        .pc(pc),
+        .external_data_out(fifo_out)
     );
 
     // TODO - Wire these up to the FSMs
     logic [31:0] fsm_output [3:0];
     logic [31:0] fsm_drive [3:0];
-
-    // TODO - Wire signals up to fsm
-    // These FIFOs are reversable, will need to store direction
-    // the names right now refer to their default direction
-    // I'll have a look at the docs to see if that's the best way
-    // to name these fifos
-    logic [31:0] tx_data_in;
-    logic tx_push_en;
-    logic tx_pop_en;
-    logic [31:0] tx_data_out;
-    logic [1:0] tx_status;
-    logic [2:0] tx_fifo_count;
-
-    logic [31:0] rx_data_in;
-    logic rx_push_en;
-    logic rx_pop_en;
-    logic [31:0] rx_data_out;
-    logic [1:0] rx_status;
-    logic [2:0] rx_fifo_count;
-
-    fifo tx_fifo (
-        .clk(clk),
-        .rst(rst),
-        .data_in(tx_data_in),
-        .push_en(tx_push_en),
-        .pop_en(tx_pop_en),
-        .data_out(tx_data_out),
-        .status(tx_status),
-        .fifo_count(tx_fifo_count)
-    );
-
-    fifo rx_fifo (
-        .clk(clk),
-        .rst(rst),
-        .data_in(gpio_input),
-        .push_en(1),
-        .pop_en(1),
-        .data_out(rx_data_out),
-        .status(rx_status),
-        .fifo_count(rx_fifo_count)
-    );
-
-    // TODO Add OSR
 
     fsm_output_arbitrator fsm_output_arbitrator(
         .fsm_output(fsm_output),

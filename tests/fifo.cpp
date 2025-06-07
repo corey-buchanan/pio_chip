@@ -1,36 +1,13 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-class Fifo : public ::testing::Test {
+class Fifo : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper *uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
         
         uut->fifo_in = 0x00000000;
         uut->push_en = 0;
         uut->pop_en = 0;
-
-        Reset();
-    }
-
-    void TearDown() override {
-        delete uut;
-    }
-
-    void Reset() {
-        uut->rst = 1;
-        uut->eval();
-        uut->rst = 0;
-        uut->eval();
-    }
-
-    void AdvanceOneCycle() {
-        uut->clk = 0;
-        uut->eval();
-        uut->clk = 1;
-        uut->eval();
     }
 };
 

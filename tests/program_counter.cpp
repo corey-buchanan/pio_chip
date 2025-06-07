@@ -1,12 +1,9 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-class ProgramCounterTests : public ::testing::Test {
+class ProgramCounterTests : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper* uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
         uut->clk = 0;
         uut->rst = 0;
@@ -16,10 +13,6 @@ protected:
         uut->pc_en = 0;
 
         uut->eval();
-    }
-
-    void TearDown() override {
-        delete uut;
     }
 };
 

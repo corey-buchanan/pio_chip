@@ -30,4 +30,26 @@ typedef struct packed {
     logic empty, full;
 } fifo_status;
 
+typedef enum logic [2:0] {
+    JMP = 3'b000,
+    WAIT = 3'b001,
+    IN = 3'b010,
+    OUT = 3'b011,
+    PUSH_PULL = 3'b100,
+    MOV = 3'b101,
+    IRQ = 3'b110,
+    SET = 3'b111
+} pio_instr_t;
+
+typedef enum logic [2:0] {
+    UNCOND = 3'b000,
+    X_ZERO = 3'b001,
+    X_NZ_DEC = 3'b010,
+    Y_ZERO = 3'b011,
+    Y_NZ_DEC = 3'b100,
+    X_NE_Y = 3'b101,
+    PIN = 3'b110,
+    OSR_NOT_EMPTY = 3'b111
+} jump_cond_t;
+
 `endif

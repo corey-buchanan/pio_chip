@@ -1,25 +1,14 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-class GpioTests : public ::testing::Test {
+class GpioTests : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper* uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
-        uut->clk = 0;
-        uut->rst = 0;
         uut->out_data = 0x00000000;
         uut->sync_bypass = 0x00000000;
         uut->dir = 0x00000000;
-        uut->eval();
     }
-
-    void TearDown() override {
-        delete uut;
-    }
-
 };
 
 // There is some difficulty in testing this fully, as

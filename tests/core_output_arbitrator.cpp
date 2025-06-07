@@ -1,12 +1,9 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-class OutputArbitrator : public ::testing::Test {
+class OutputArbitrator : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper *uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
         for (int i = 0; i < 32; i++) {
             uut->core_select[i] = 0b00;
@@ -16,10 +13,6 @@ protected:
             uut->core_output[i] = 0x00000000;
             uut->core_drive[i] = 0x00000000;
         }
-    }
-
-    void TearDown() override {
-        delete uut;
     }
 };
 

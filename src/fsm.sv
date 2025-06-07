@@ -1,8 +1,12 @@
+`include "types.svh"
+
 module fsm(
     input logic clk, rst,
-    // input logic [1:0] fifo_pull_en,
+    input logic external_push_en, external_pop_en,
+    input logic [31:0] external_data_in,
     input logic [15:0] instruction,
-    output logic [4:0] pc
+    output logic [4:0] pc,
+    output logic [31:0] external_data_out
     );
 
     logic [4:0] wrap_top, wrap_bottom;
@@ -32,6 +36,33 @@ module fsm(
         .pc(pc)
     );
 
+    logic pull_op, push_op;
+    logic [31:0] rx_data_in, tx_data_out;
+    logic [1:0] tx_status, rx_status;
+    logic [2:0] tx_fifo_count, rx_fifo_count;
+
+    fifo rx_fifo(
+        .clk(clk),
+        .rst(rst),
+        .data_in(rx_data_in),
+        .push_en(push_op),
+        .pop_en(external_pop_en),
+        .data_out(external_data_out),
+        .status(rx_status),
+        .fifo_count(rx_fifo_count)
+    );
+
+    fifo tx_fifo(
+        .clk(clk),
+        .rst(rst),
+        .data_in(external_data_in),
+        .push_en(external_push_en),
+        .pop_en(push_op),
+        .data_out(tx_data_out),
+        .status(tx_status),
+        .fifo_count(tx_fifo_count)
+    );
+
     // FIFO Management
     logic [1:0] almost_empty_last_cycle;
     logic [1:0] almost_full_last_cycle;
@@ -42,42 +73,51 @@ module fsm(
             y <= 32'b0;
         end
         else begin
-            // JMP
             case (instruction[15:13])
-                3'b000: begin
+                JMP: begin
                     jump <= instruction[4:0];
                     pc_en <= 1;
 
                     case(instruction[7:5])
-                        3'b000: begin
+                        UNCOND: begin
                             // Unconditional
                             jump_en <= 1;
                         end
-                        3'b001: begin
+                        X_ZERO: begin
                             // If !X (X zero)
                             if (x == 0) jump_en <= 1;
                             else jump_en <= 0;
                         end
-                        3'b010: begin
+                        X_NZ_DEC: begin
                             // If X-- (X non-zero prior to decrement)
                             if (x != 0) jump_en <= 1;
                             else jump_en <= 0;
                             x <= x - 1;
                         end
-                        3'b011: begin
+                        Y_ZERO: begin
                             // If !Y (Y zero)
                             if (y == 0) jump_en <= 1;
                             else jump_en <= 0;
                         end
-                        3'b100: begin
+                        Y_NZ_DEC: begin
                             // If Y-- (Y non-zero prior to decrement)
                             if (y != 0) jump_en <= 1;
                             else jump_en <= 0;
                             y <= y - 1;
                         end
-                        3'b101: begin
+                        X_NE_Y: begin
                             // If X!=Y
                             if (x != y) jump_en <= 1;
+                            else jump_en <= 0;
+                        end
+                        PIN: begin
+                            // If push_en is set
+                            if (1) jump_en <= 1; // TODO - wire up to EXECCTRL_JMP_PIN
+                            else jump_en <= 0;
+                        end
+                        OSR_NOT_EMPTY: begin
+                            // If OSR is not empty
+                            if (1) jump_en <= 1; // TODO - wire up to OSR empty signal
                             else jump_en <= 0;
                         end
                         default: begin
@@ -85,8 +125,7 @@ module fsm(
                         end
                     endcase
                 end
-                // WAIT
-                3'b001: begin
+                WAIT: begin
                     // Do nothing for now
                     // We'll pretend it's a no-op instruction for the moment
                     jump_en <= 0;
@@ -115,8 +154,7 @@ module fsm(
 
                 // IRQ
 
-                // SET
-                3'b111: begin
+                SET: begin
                     jump_en <= 0;
                     pc_en <= 1;
                     case (instruction[7:5])

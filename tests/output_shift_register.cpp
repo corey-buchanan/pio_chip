@@ -1,17 +1,10 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-#define DEBUG_PRINT 0
-
-class OutputShiftRegisterTests : public ::testing::Test {
+class OutputShiftRegisterTests : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper* uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
-        uut->clk = 0;
-        uut->rst = 0;
         uut->mov_in = 0x00000000;
         uut->mov = 0b00;
         uut->fifo_in = 0x00000000;
@@ -24,22 +17,6 @@ protected:
         uut->osr = 0x00000000;
 
         uut->eval();
-    }
-
-    void TearDown() override {
-        delete uut;
-    }
-
-    // Generates a rising edge
-    void AdvanceOneCycle() {
-        uut->clk = 0;
-        uut->eval();
-        uut->clk = 1;
-        uut->eval();
-
-        #if DEBUG_PRINT
-        // TODO: Add a helpful print statement
-        #endif
     }
 };
 

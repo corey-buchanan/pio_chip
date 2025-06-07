@@ -1,31 +1,14 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-class InstructionRegfileTests : public ::testing::Test {
+class InstructionRegfileTests : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper* uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
-        uut->clk = 0;
         uut->instr_in = 0b0000'0000'0000'0000;
         uut->write_addr = 0b00000;
         uut->write_en = 0;
         uut->read_addr = 0b00000;
-
-        Reset(); // Zero the regfile
-    }
-
-    void Reset() {
-        uut->rst = 1;
-        uut->eval();
-        uut->rst = 0;
-        uut->eval();
-    }
-
-    void TearDown() override {
-        delete uut;
     }
 };
 

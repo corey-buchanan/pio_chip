@@ -1,42 +1,12 @@
-#include "gtest/gtest.h"
-#include "Vtest_wrapper.h"
+#include "test_utils.h"
 
-#define DEBUG_PRINT 0
-
-class FsmTests : public ::testing::Test {
+class FsmTests : public VerilatorTestFixture {
 protected:
-    Vtest_wrapper* uut;
-
     void SetUp() override {
-        uut = new Vtest_wrapper;
+        VerilatorTestFixture::SetUp();
 
-        uut->clk = 0;
-        uut->rst = 0;
         uut->instruction = 0b0000'0000'0000'0000;
         uut->eval();
-
-        // Reset the program counter and scratch registers
-        uut->rst = 1;
-        uut->eval();
-        uut->rst = 0;
-        uut->eval();
-    }
-
-    void TearDown() override {
-        delete uut;
-    }
-
-    // Generates a rising edge
-    void AdvanceOneCycle() {
-        uut->clk = 0;
-        uut->eval();
-        uut->clk = 1;
-        uut->eval();
-
-        #if DEBUG_PRINT
-        // TODO: Add binary representation of instruction
-        printf("PC: %d, X: %d, Y: %d\n", uut->fsm_pc, uut->x, uut->y);
-        #endif
     }
 };
 

@@ -45,7 +45,10 @@ module test_wrapper(
     output logic [2:0] fifo_count,
     output [31:0] fifo_memory [0:3],
     output logic [1:0] fifo_head,
-    output logic [1:0] fifo_tail
+    output logic [1:0] fifo_tail,
+    input logic external_push_en, external_pop_en,
+    input logic [31:0] external_data_in,
+    output logic [31:0] external_data_out
     );
 
     initial begin
@@ -78,8 +81,12 @@ module test_wrapper(
     fsm uut_fsm(
         .clk(clk),
         .rst(rst),
+        .external_push_en(external_push_en),
+        .external_data_in(external_data_in),
+        .external_pop_en(external_pop_en),
         .instruction(instruction),
-        .pc(fsm_pc)
+        .pc(fsm_pc),
+        .external_data_out(external_data_out)
     );
     
     assign x = uut_fsm.x;
