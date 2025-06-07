@@ -1,49 +1,28 @@
-// TODO - Pack these into a few different structs
-
-typedef struct packed {
-    logic [3:0] clkdiv_restart, sm_restart, sm_en;
-} ctrl_reg_out_t;
-
-typedef struct packed {
-    logic [3:0] tx_empty, tx_full, rx_empty, rx_full;
-} fstat_reg_in_t;
-
-typedef struct packed {
-    logic [3:0] tx_stall, tx_over, rx_under, rx_stall;
-} fdebug_reg_in_t;
-
-typedef struct packed {
-    logic [3:0][3:0] rx;
-    logic [3:0][3:0] tx;
-} flevel_reg_in_t;
+`include "types.svh"
 
 module control_regfile(
-    input clk,
-    input rst,
-    input [31:0] data_in,
-    input [9:0] write_addr,
-    input write_en,
-    input [4:0] read_addr,
-    output [31:0] data_out,
+    input logic clk, rst,
+    input logic [31:0] data_in,
+    input logic [8:0] write_addr, read_addr,
+    input logic write_en,
+    output logic [31:0] data_out,
     output ctrl_reg_out_t ctrl_out,
     input fstat_reg_in_t fstat_in,
     input fdebug_reg_in_t fdebug_in,
     input flevel_reg_in_t flevel_in,
-    input [7:0] irq_set, irq_clr, // IRQ reg
-    output [31:0] gpio_sync_bypass, // INPUT_SYNC_BYPASS reg
-    input [31:0] dbg_padout, // DBG_PADOUT reg
-    input [31:0] dbg_padoe, // DBG_PADOE reg
-    output [31:8] fsm_clkdiv [3:0], // SMx_CLKDIV reg
-    output [31:0] fsm_execctrl [3:0], // SMx_EXECCTRL reg
-    output [31:16] fsm_shiftctrl [3:0], // SMx_SHIFTCTRL reg
-    input [3:0] current_addr [3:0], // SMx_ADDR reg
-    input [15:0] current_instr [3:0], // SMx_INSTR reg
-    output reg [15:0] fsm_instr [3:0], // SMx_INSTR reg
-    output [3:0] fsm_instr_flag, // Flag gets set when SMx_INSTR is written to
-    output [31:0] fsm_pinctrl [3:0], // SMx_PINCTRL reg
-    input [3:0] intr_sm, // INTR reg
-    input [3:0] intr_sm_txnfull, // INTR reg
-    input [3:0] intr_sm_rxnfull // INTR reg
+    input irq_reg_in_t irq_in,
+    output logic [31:0] gpio_sync_bypass, // INPUT_SYNC_BYPASS reg
+    input logic [31:0] dbg_padout, // DBG_PADOUT reg
+    input logic [31:0] dbg_padoe, // DBG_PADOE reg
+    output logic [31:8] fsm_clkdiv [3:0], // SMx_CLKDIV reg
+    output logic [31:0] fsm_execctrl [3:0], // SMx_EXECCTRL reg
+    output logic [31:16] fsm_shiftctrl [3:0], // SMx_SHIFTCTRL reg
+    input logic [4:0] current_addr [3:0], // SMx_ADDR reg
+    input logic [15:0] current_instr [3:0], // SMx_INSTR reg
+    output logic [15:0] fsm_instr [3:0], // SMx_INSTR reg
+    output logic [3:0] fsm_instr_flag, // Flag gets set when SMx_INSTR is written to
+    output logic [31:0] fsm_pinctrl [3:0], // SMx_PINCTRL reg
+    input intr_reg_in_t intr_in
     );
 
     // RW - Processor can read/write
@@ -58,25 +37,25 @@ module control_regfile(
     // RWF - Read from / write to hardware - likely the fifo buffers, etc.
     
     // Registers
-    reg [31:0] ctrl;                        // 0x000 - SC/RW
-    reg [31:0] fstat;                       // 0x004 - RO
-    reg [31:0] fdebug;                      // 0x008 - WC
-    reg [31:0] flevel;                      // 0x00C - RO
-    reg [31:0] irq;                         // 0x030 - WC
-    reg [31:0] input_sync_bypass;           // 0x038 - RW
-    // DBG_PADOUT (dbg_padout input)        // 0x03C - RO
-    // DBG_PADOE (dbg_padoe input)          // 0x040 - RO
-    // DBG_CFGINFO (hardwired values)       // 0x044 - RO 
-    reg [31:0] sm_clkdiv [0:3];             // 0x0C8, Ox0E0, Ox0F8, 0x110 - RW
-    reg [31:0] sm_execctrl [0:3];           // 0x0CC, 0x0E4, 0x0FC, 0x114 - RO/RW
-    reg [31:0] sm_shiftctrl [0:3];          // 0x0D0, 0x0E8, 0x100, 0x118 - RW
-    // SMx_ADDR (current_addr inputs)       // 0x0D4, 0x0EC, 0x104, 0x11C - R0
-    // SMx_INSTR (fsm_instr output & flag)  // 0x0D8, 0x0F0, 0x108, 0x120 - RW
-    reg [31:0] sm_pinctrl [0:3];            // 0x0DC, 0x0F4, 0x10C, 0x124 - RW
-    // INTR (intr_ inputs)                  // 0x128 - RO
-    reg [31:0] irq0_inte, irq1_inte;        // 0x12C, 0x138 - RW
-    reg [31:0] irq0_intf, irq1_intf;        // 0x130, 0x13C - RW
-    reg [31:0] irq0_ints, irq1_ints;        // 0x134, 0x140 - RO
+    logic [31:0] ctrl;                        // 0x000 - SC/RW
+    logic [31:0] fstat;                       // 0x004 - RO
+    logic [31:0] fdebug;                      // 0x008 - WC
+    logic [31:0] flevel;                      // 0x00C - RO
+    logic [31:0] irq;                         // 0x030 - WC
+    logic [31:0] input_sync_bypass;           // 0x038 - RW
+    // DBG_PADOUT (dbg_padout input)          // 0x03C - RO
+    // DBG_PADOE (dbg_padoe input)            // 0x040 - RO
+    // DBG_CFGINFO (hardwired values)         // 0x044 - RO 
+    logic [31:0] sm_clkdiv [0:3];             // 0x0C8, Ox0E0, Ox0F8, 0x110 - RW
+    logic [31:0] sm_execctrl [0:3];           // 0x0CC, 0x0E4, 0x0FC, 0x114 - RO/RW
+    logic [31:0] sm_shiftctrl [0:3];          // 0x0D0, 0x0E8, 0x100, 0x118 - RW
+    // SMx_ADDR (current_addr inputs)         // 0x0D4, 0x0EC, 0x104, 0x11C - R0
+    // SMx_INSTR (fsm_instr output & flag)    // 0x0D8, 0x0F0, 0x108, 0x120 - RW
+    logic [31:0] sm_pinctrl [0:3];            // 0x0DC, 0x0F4, 0x10C, 0x124 - RW
+    // INTR (intr_ inputs)                    // 0x128 - RO
+    logic [31:0] irq0_inte, irq1_inte;        // 0x12C, 0x138 - RW
+    logic [31:0] irq0_intf, irq1_intf;        // 0x130, 0x13C - RW
+    logic [31:0] irq0_ints, irq1_ints;        // 0x134, 0x140 - RO
 
     // HW input and output wire assignments
     assign ctrl_out.clkdiv_restart = ctrl[11:8];
@@ -157,11 +136,10 @@ module control_regfile(
             9'h120: data_out[15:0] = current_instr[3];
             9'h124: data_out = sm_pinctrl[3];
 
-            9'h128: data_out = intr;
             9'h128: begin
-                data_out[11:8] = intr_sm;
-                data_out[7:4] = intr_sm_txnfull;
-                data_out[3:0] = intr_sm_rxnfull;
+                data_out[11:8] = intr_in.intr_sm;
+                data_out[7:4] = intr_in.intr_sm_txnfull;
+                data_out[3:0] = intr_in.intr_sm_rxnfull;
             end
 
             // IRQ0
@@ -200,7 +178,7 @@ module control_regfile(
             fdebug[19:16] <= (fdebug[19:16] | fdebug_in.tx_over[3:0]) & ~(data_in[19:16] & {4{(write_addr == 9'h008 & write_en)}});
             fdebug[11:8] <= (fdebug[11:8] | fdebug_in.rx_under[3:0]) & ~(data_in[11:8] & {4{(write_addr == 9'h008 & write_en)}});
             fdebug[3:0] <= (fdebug[3:0] | fdebug_in.rx_stall[3:0]) & ~(data_in[3:0] & {4{(write_addr == 9'h008 & write_en)}});
-            irq[7:0] <= (irq[7:0] | irq_set[7:0]) & ~irq_clr[7:0] & ~(data_in[7:0] & {8{(write_addr == 9'h008 & write_en)}});
+            irq[7:0] <= (irq[7:0] | irq_in.irq_set[7:0]) & ~irq_in.irq_clr[7:0] & ~(data_in[7:0] & {8{(write_addr == 9'h008 & write_en)}});
         end
     end
 

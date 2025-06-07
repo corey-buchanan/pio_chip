@@ -1,9 +1,9 @@
 module core_output_arbitrator(
-    input [1:0] core_select [31:0],
-    input [31:0] core_output [3:0],
-    input [31:0] core_drive [3:0],
-    output reg [31:0] gpio_output,
-    output reg [31:0] gpio_drive
+    input logic [1:0] core_select [31:0],
+    input logic [31:0] core_output [3:0],
+    input logic [31:0] core_drive [3:0],
+    output logic [31:0] gpio_output,
+    output logic [31:0] gpio_drive
 );
 
 // Select which core drives gpio

@@ -1,6 +1,4 @@
-typedef struct packed {
-    logic empty, full;
-} fifo_status;
+`include "types.svh"
 
 module fifo(
     input logic rst, clk,

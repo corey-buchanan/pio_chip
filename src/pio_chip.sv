@@ -1,23 +1,22 @@
 module pio_chip(
-    input clk,
-    input rst,
-    output reg[1:0] counter,
-    inout [31:0] gpio
+    input logic clk, rst,
+    output logic [1:0] counter, // TODO - what is this doing here? clock divider?
+    inout logic [31:0] gpio
 );
 
-    reg [1:0] core_select [31:0];
+    logic [1:0] core_select [31:0];
 
-    wire [31:0] core_0_output, core_1_output, core_2_output, core_3_output;
-    wire [31:0] core_0_drive, core_1_drive, core_2_drive, core_3_drive;
+    logic [31:0] core_0_output, core_1_output, core_2_output, core_3_output;
+    logic [31:0] core_0_drive, core_1_drive, core_2_drive, core_3_drive;
 
-    wire [31:0] core_output [3:0];
-    wire [31:0] core_drive [3:0];
+    logic [31:0] core_output [3:0];
+    logic [31:0] core_drive [3:0];
 
-    wire [31:0] out_data;
-    reg [31:0] sync_bypass;
-    wire [31:0] dir;
-    reg [31:0] pde, pue;
-    reg [31:0] in_data;
+    logic [31:0] out_data;
+    logic [31:0] sync_bypass;
+    logic [31:0] dir;
+    logic [31:0] pde, pue;
+    logic [31:0] in_data;
 
     pio_core core_0(
         .clk(clk),

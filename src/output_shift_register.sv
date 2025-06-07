@@ -1,25 +1,26 @@
+// TODO: group these into sensible structs
+
 module output_shift_register(
-    input clk,
-    input rst,
-    input [31:0] mov_in,
-    output reg [31:0] mov_out,
-    input [1:0] mov, // via MOV instruction - bit 1 set - osr as src, bit 0 set - osr as dest
-    input [31:0] fifo_in,
-    input fifo_pull, // via PULL instruction
-    output reg [31:0] data_out,
-    input shift_en, // via OUT instruction
-    input [4:0] pull_thresh, // 0 for a value of 32
-    input shiftdir, // 0 = left, 1 = right
-    input autopull,
-    input [4:0] shift_count, // Set by OUT instruction
-    output fifo_pulled, // Signal to the FIFO that we've pulled data
-    output reg [5:0] output_shift_counter // How many bits to shift in from the FIFO on pull: 0 = full, 32 = empty
+    input logic clk, rst,
+    input logic [31:0] mov_in,
+    output logic [31:0] mov_out,
+    input logic [1:0] mov, // via MOV instruction - bit 1 set - osr as src, bit 0 set - osr as dest
+    input logic [31:0] fifo_in,
+    input logic fifo_pull, // via PULL instruction
+    output logic [31:0] data_out,
+    input logic shift_en, // via OUT instruction
+    input logic [4:0] pull_thresh, // 0 for a value of 32
+    input logic shiftdir, // 0 = left, 1 = right
+    input logic autopull,
+    input logic [4:0] shift_count, // Set by OUT instruction
+    output logic fifo_pulled, // Signal to the FIFO that we've pulled data
+    output logic [5:0] output_shift_counter // How many bits to shift in from the FIFO on pull: 0 = full, 32 = empty
 );
 
-reg [31:0] osr;
-reg [5:0] pull_threshold;
-reg [5:0] true_shift_count;
-reg [5:0] current_shift_counter;
+logic [31:0] osr;
+logic [5:0] pull_threshold;
+logic [5:0] true_shift_count;
+logic [5:0] current_shift_counter;
 
 // From the PIO spec:
 //

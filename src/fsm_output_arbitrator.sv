@@ -1,13 +1,15 @@
 module fsm_output_arbitrator(
-    input [31:0] fsm_output [3:0],
-    input [31:0] fsm_drive [3:0],
-    output reg [31:0] core_output,
-    output reg [31:0] core_drive
+    input logic [31:0] fsm_output [3:0],
+    input logic [31:0] fsm_drive [3:0],
+    output logic [31:0] core_output,
+    output logic [31:0] core_drive
 );
 
-// Lowest indexed FSM gets priority for each core
 integer i;
 always @(*) begin
+    // For each bit in the output, check if any of the FSMs are driving it
+    // Lowest index FSM gets priority, so if multiple FSMs are driving the same bit,
+    // the lowest index FSM will be selected.
     for (i = 0; i < 32; i = i + 1) begin
         if (fsm_drive[0][i]) begin
             core_drive[i] = 1;

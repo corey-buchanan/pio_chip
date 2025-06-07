@@ -9,12 +9,16 @@ protected:
         uut = new Vtest_wrapper;
 
         uut->clk = 0;
-        uut->data_in = 0b0000'0000'0000'0000;
+        uut->instr_in = 0b0000'0000'0000'0000;
         uut->write_addr = 0b00000;
         uut->write_en = 0;
         uut->read_addr = 0b00000;
 
-        uut->rst = 1; // Zero the regfile
+        Reset(); // Zero the regfile
+    }
+
+    void Reset() {
+        uut->rst = 1;
         uut->eval();
         uut->rst = 0;
         uut->eval();
@@ -27,7 +31,7 @@ protected:
 
 TEST_F(InstructionRegfileTests, TestReadWriteToRegfile) {
     uut->write_en = 1;
-    uut->data_in = 0b0101'0101'0101'0101;
+    uut->instr_in = 0b0101'0101'0101'0101;
 
     for (int i = 0b00000; i <= 0b11111; i++) {
         uut->write_addr = i;
@@ -44,7 +48,7 @@ TEST_F(InstructionRegfileTests, TestReadWriteToRegfile) {
         uut->read_addr = i;
         uut->clk = 1;
         uut->eval();
-        EXPECT_EQ(uut->data_out, 0b0101'0101'0101'0101);
+        EXPECT_EQ(uut->instr_out, 0b0101'0101'0101'0101);
 
         uut->clk = 0;
         uut->eval();
@@ -53,7 +57,7 @@ TEST_F(InstructionRegfileTests, TestReadWriteToRegfile) {
 
 TEST_F(InstructionRegfileTests, TestReset) {
     uut->write_en = 1;
-    uut->data_in = 0b1111'1111'1111'1111;
+    uut->instr_in = 0b1111'1111'1111'1111;
 
     for (int i = 0b00000; i <= 0b11111; i++) {
         uut->write_addr = i;
@@ -72,7 +76,7 @@ TEST_F(InstructionRegfileTests, TestReset) {
         uut->read_addr = i;
         uut->clk = 1;
         uut->eval();
-        EXPECT_EQ(uut->data_out, 0b0000'0000'0000'0000);
+        EXPECT_EQ(uut->instr_out, 0b0000'0000'0000'0000);
 
         uut->clk = 0;
         uut->eval();
@@ -80,7 +84,7 @@ TEST_F(InstructionRegfileTests, TestReset) {
 }
 
 TEST_F(InstructionRegfileTests, TestWriteEnableFalse) {
-    uut->data_in = 0b1001'1001'1001'1001;
+    uut->instr_in = 0b1001'1001'1001'1001;
 
     for (int i = 0b00000; i <= 0b11111; i++) {
         uut->write_addr = i;
@@ -95,7 +99,7 @@ TEST_F(InstructionRegfileTests, TestWriteEnableFalse) {
         uut->read_addr = i;
         uut->clk = 1;
         uut->eval();
-        EXPECT_EQ(uut->data_out, 0b0000'0000'0000'0000);
+        EXPECT_EQ(uut->instr_out, 0b0000'0000'0000'0000);
 
         uut->clk = 0;
         uut->eval();

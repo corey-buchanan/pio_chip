@@ -1,41 +1,42 @@
+`include "types.svh"
+
 module test_wrapper(
     // TODO: Organize these a little better
-    input clk,
-    input rst,
-    input [4:0] wrap_top, wrap_bottom,
-    input [4:0] jump,
-    input jump_en,
-    input pc_en,
-    output reg [4:0] pc,
-    input [15:0] data_in,
-    input [4:0] write_addr,
-    input write_en,
-    input [4:0] read_addr,
-    output reg [15:0] data_out,
-    input [15:0] instruction,
-    output reg[4:0] fsm_pc,
-    output reg [31:0] x, y,
-    input [31:0] out_data, sync_bypass, dir, pde, pue,
-    output reg [31:0] in_data,
-    inout [31:0] gpio,
-    input [1:0] core_select [31:0],
-    input [31:0] fsm_output [3:0],
-    input [31:0] fsm_drive [3:0],
-    output reg [31:0] fsm_core_output,
-    output reg [31:0] fsm_core_drive,
-    input [31:0] core_output [3:0],
-    input [31:0] core_drive [3:0],
-    output reg [31:0] gpio_output,
-    output reg [31:0] gpio_drive,
-    input [31:0] mov_in, fifo_in,
-    output [31:0] mov_out,
-    input [1:0] mov,
-    input fifo_pull, shift_en,
-    input shiftdir, autopull,
-    input [4:0] shift_count, pull_thresh,
-    output reg [31:0] osr, osr_data_out,
-    output fifo_pulled,
-    output reg [5:0] output_shift_counter,
+    input logic clk, rst,
+    input logic [4:0] wrap_top, wrap_bottom,
+    input logic [4:0] jump,
+    input logic jump_en,
+    input logic pc_en,
+    output logic [4:0] pc,
+    input logic [15:0] instr_in,
+    input logic [4:0] write_addr,
+    input logic write_en,
+    input logic [4:0] read_addr,
+    output logic [15:0] instr_out,
+    input logic [15:0] instruction,
+    output logic [4:0] fsm_pc,
+    output logic [31:0] x, y,
+    input logic [31:0] out_data, sync_bypass, dir, pde, pue,
+    output logic [31:0] in_data,
+    inout logic [31:0] gpio,
+    input logic [1:0] core_select [31:0],
+    input logic [31:0] fsm_output [3:0],
+    input logic [31:0] fsm_drive [3:0],
+    output logic [31:0] fsm_core_output,
+    output logic [31:0] fsm_core_drive,
+    input logic [31:0] core_output [3:0],
+    input logic [31:0] core_drive [3:0],
+    output logic [31:0] gpio_output,
+    output logic [31:0] gpio_drive,
+    input logic [31:0] mov_in, fifo_in,
+    output logic [31:0] mov_out,
+    input logic [1:0] mov,
+    input logic fifo_pull, shift_en,
+    input logic shiftdir, autopull,
+    input logic [4:0] shift_count, pull_thresh,
+    output logic [31:0] osr, osr_data_out,
+    output logic fifo_pulled,
+    output logic [5:0] output_shift_counter,
     input logic push_en,
     input logic pop_en,
     output logic [31:0] fifo_out,
@@ -50,7 +51,7 @@ module test_wrapper(
     initial begin
         pc = 5'b0;
         fsm_pc = 5'b0;
-        data_out = 16'b0;
+        instr_out = 16'b0;
     end
 
     program_counter uut_program_counter(
@@ -67,11 +68,11 @@ module test_wrapper(
     instruction_regfile uut_instruction_regfile(
         .clk(clk),
         .rst(rst),
-        .data_in(data_in),
+        .instr_in(instr_in),
         .write_addr(write_addr),
         .write_en(write_en),
         .read_addr(read_addr),
-        .data_out(data_out)
+        .instr_out(instr_out)
     );
 
     fsm uut_fsm(
@@ -141,11 +142,6 @@ module test_wrapper(
         .status(status),
         .fifo_count(fifo_count)
     );
-
-    // TODO - make a typedef file
-    typedef struct packed {
-        logic empty, full;
-    } fifo_status;
 
     fifo_status status;
     assign empty = status.empty;

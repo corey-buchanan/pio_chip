@@ -1,17 +1,16 @@
 module fsm(
-    input clk,
-    input rst,
-    // input [1:0] fifo_pull_en,
-    input [15:0] instruction,
-    output reg [4:0] pc
+    input logic clk, rst,
+    // input logic [1:0] fifo_pull_en,
+    input logic [15:0] instruction,
+    output logic [4:0] pc
     );
 
-    reg [4:0] wrap_top, wrap_bottom;
-    reg [4:0] jump;
-    reg jump_en, pc_en;
+    logic [4:0] wrap_top, wrap_bottom;
+    logic [4:0] jump;
+    logic jump_en, pc_en;
 
     // Scratch registers
-    reg [31:0] x, y;
+    logic [31:0] x, y;
 
     // Remove when control registers are wired up
     initial begin
@@ -34,8 +33,8 @@ module fsm(
     );
 
     // FIFO Management
-    reg [1:0] almost_empty_last_cycle;
-    reg [1:0] almost_full_last_cycle;
+    logic [1:0] almost_empty_last_cycle;
+    logic [1:0] almost_full_last_cycle;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -100,6 +99,7 @@ module fsm(
                 // PUSH
 
                 // PULL
+                // TODO - replace with logic that uses the counter
                 // We will need similar logic to this for the autopull
                 // if (almost_empty && !push_en) begin
                 //     almost_empty_last_cycle <= 1; // Almost empty, nothing added

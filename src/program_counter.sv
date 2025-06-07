@@ -1,12 +1,11 @@
 module program_counter(
-    input clk,
-    input rst,
-    input [4:0] wrap_top,
-    input [4:0] wrap_bottom,
-    input [4:0] jump,
-    input jump_en,
-    input pc_en,
-    output reg [4:0] pc
+    input logic clk, rst,
+    input logic [4:0] wrap_top,
+    input logic [4:0] wrap_bottom,
+    input logic [4:0] jump,
+    input logic jump_en,
+    input logic pc_en,
+    output logic [4:0] pc
     );
     
     always @(posedge clk or posedge rst) begin
@@ -24,8 +23,10 @@ module program_counter(
                 pc <= pc + 1;
             end
         end
-
-        // Otherwise stalls
+        else begin
+            // Otherwise stalls
+            pc <= pc;
+        end
     end
 
 endmodule

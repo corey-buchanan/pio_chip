@@ -8,7 +8,7 @@ protected:
     void SetUp() override {
         uut = new Vtest_wrapper;
         
-        uut->data_in = 0x00000000;
+        uut->fifo_in = 0x00000000;
         uut->push_en = 0;
         uut->pop_en = 0;
 
@@ -21,9 +21,9 @@ protected:
 
     void Reset() {
         uut->rst = 1;
-        AdvanceOneCycle();
+        uut->eval();
         uut->rst = 0;
-        AdvanceOneCycle();
+        uut->eval();
     }
 
     void AdvanceOneCycle() {
