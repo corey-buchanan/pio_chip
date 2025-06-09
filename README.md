@@ -1,6 +1,8 @@
 # Project Description
 
-I'm trying to create something similar to the RPI Programmable I/O, but as a standalone chip. I plan to implement compatible instructions such that programs can be easily be ported over.
+I'm reverse engineering the Programmable I/O module in the RP2040 from its specification to see if I can implement its functionality as a standalone chip. The PIO is a remarkable work of engineering that makes the RP2040 a very powerful microcontroller, and building a separate PIO chip would allow one to extend the functionality of other existing microcontrollers. Currently, I am working on the RTL implementation, but if this goes well, I will take this design to silicon via one of OpenMPW shuttle programs (provided they continue to exist).
+
+I am implementing compatible instructions such that programs can be easily be ported over. Given the flexibility of writing my own implementation, I may change or add to some of the functionality.
 
 # Running the project
 
@@ -25,8 +27,8 @@ ctest
 
 # TODOs
 
+- [ ] Add UVM testbenches - may not be necessary right now, but I want to study UVM
 - [x] Convert to System Verilog, using its useful extensions - we can try to bundle and better name the myriad of wires
-- [ ] Add UVM testbenches - may not be necessary at this point, but I want to study UVM
 - [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.
 - [x] Add control registers
@@ -42,7 +44,7 @@ ctest
 - [ ] Separate 2 resets, global reset and soft reset (see note on fsm.v)
 - [ ] Build an assembler, or import it to make testing easier
 - [ ] Implement clock divider
-- [ ] Document anything that is different than the PIO
+- [-] Document anything that is different than the PIO
 - [x] Add OSR
 - [ ] Add ISR
 - [ ] Create interrupt controller
