@@ -1,6 +1,7 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
+#include <cstdint>
 #include "Vtest_wrapper.h"
 #include "gtest/gtest.h"
 

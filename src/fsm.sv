@@ -65,17 +65,21 @@ module fsm(
     );
 
     // OSR Management
+    // AUTOPULL
     logic autopull;
     logic [4:0] pull_thresh; // Will be a register input
     logic [5:0] true_pull_thresh;
+    logic [5:0] osr_shift_counter;
+    // OSR DATA
+    logic [31:0] osr_data_in;
+    logic [31:0] osr_data;
+    logic [31:0] osr_shift_out;
+    // OSR CTRL
+    logic osr_load;
+    logic osr_shift_en;
+    logic osr_shiftdir;
     logic [4:0] out_shift_count; // Might be a register input???
     logic [5:0] true_out_shift_count;
-    logic [5:0] osr_shift_counter;
-
-    osr_data_t osr_data;
-    osr_control_t osr_control;
-
-    assign osr_control.shift_count = true_out_shift_count;
 
     always_comb begin
         if (pull_thresh == 0) true_pull_thresh = 6'd32;
@@ -88,8 +92,13 @@ module fsm(
     output_shift_register osr(
         .clk(clk),
         .rst(rst),
-        .data(osr_data),
-        .control(osr_control)
+        .data_in(osr_data_in),
+        .osr(osr_data),
+        .shift_out(osr_shift_out),
+        .load(osr_load),
+        .shift_en(osr_shift_en),
+        .shiftdir(osr_shiftdir),
+        .shift_count(true_out_shift_count)
     );
 
     // Logic for: jump, jump_en, pc_en
@@ -215,75 +224,81 @@ module fsm(
         end else begin
             case (instruction[15:13])
                 MOV: begin
-                    if (instruction[7:5] == mov_src_dest_t.X) begin
+                    if (instruction[7:5] == MOV_X) begin
                     // If X is the destination
                         case (instruction[2:0]) // Source
-                            mov_src_dest_t.PINS: begin
+                            MOV_PINS: begin
                                 // TODO - implement
                             end
-                            mov_src_dest_t.X: begin
+                            MOV_X: begin
                                 // NOOP
                             end
-                            mov_src_dest_t.Y: begin
+                            MOV_Y: begin
                                 x <= y;
                             end
-                            NULL: begin
+                            MOV_NULL: begin
                                 x <= 32'b0;
                             end
-                            EXEC: begin
+                            MOV_EXEC: begin
                                 // TODO - implement
                             end
-                            PC: begin
+                            MOV_PC: begin
                                 // TODO - implement
                             end
-                            ISR: begin
+                            MOV_ISR: begin
                                 // TODO - implement
                             end
-                            OSR: begin
-                                x <= osr_data.osr;
+                            MOV_OSR: begin
+                                x <= osr_data;
                             end
                         endcase
-                    end else if (instruction[7:5] == mov_src_dest_t.Y) begin
+                    end else if (instruction[7:5] == MOV_Y) begin
                     // If Y is the destination
                         case (instruction[2:0]) // Source
-                            mov_src_dest_t.PINS: begin
+                            MOV_PINS: begin
                                 // TODO - implement
                             end
-                            mov_src_dest_t.X: begin
+                            MOV_X: begin
                                 y <= x;
                             end
-                            mov_src_dest_t.Y: begin
+                            MOV_Y: begin
                                 // NOOP
                             end
-                            NULL: begin
+                            MOV_NULL: begin
                                 y <= 32'b0;
                             end
-                            EXEC: begin
+                            MOV_EXEC: begin
                                 // TODO - implement
                             end
-                            PC: begin
+                            MOV_PC: begin
                                 // TODO - implement
                             end
-                            ISR: begin
+                            MOV_ISR: begin
                                 // TODO - implement
                             end
-                            OSR: begin
-                                y <= osr_data.osr;
+                            MOV_OSR: begin
+                                y <= osr_data;
                             end
                         endcase
                     end
                 end
                 SET: begin
                     case (instruction[7:5])
-                        set_dest_t.X: begin
+                        SET_X: begin
                             x[31:5] <= 27'b0;
                             x[4:0] <= instruction[4:0];
                         end
-                        set_dest_t.Y: begin
+                        SET_Y: begin
                             y[31:5] <= 27'b0;
                             y[4:0] <= instruction[4:0];
                         end
+                        default: begin
+
+                        end
                     endcase
+                end
+                default: begin
+                    // Do nothing
                 end
             endcase
         end
@@ -327,8 +342,8 @@ module fsm(
                             tx_pop_en <= 1; // TODO - Wire up autopull logic for other instructions
                             if (!instruction[5]) begin
                                 // Block = 0 - pull from empty means copy scratch X to OSR
-                                osr_data.data_in <= x;
-                                osr_control.osr_load <= 1;
+                                osr_data_in <= x;
+                                osr_load <= 1;
                             end
                         end else begin
                             // Can pull from FIFO

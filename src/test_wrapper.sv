@@ -28,15 +28,15 @@ module test_wrapper(
     input logic [31:0] core_drive [3:0],
     output logic [31:0] gpio_output,
     output logic [31:0] gpio_drive,
-    input logic [31:0] mov_in, fifo_in,
-    output logic [31:0] mov_out,
-    input logic [1:0] mov,
-    input logic fifo_pull, shift_en,
-    input logic shiftdir, autopull,
-    input logic [5:0] shift_count, pull_thresh,
+    // OSR
     input logic [31:0] osr_data_in,
     output logic [31:0] osr, osr_shift_out,
-    output logic [5:0] output_shift_counter,
+    input logic osr_load,
+    input logic osr_shift_en,
+    input logic osr_shiftdir,
+    input logic [5:0] osr_shift_count,
+    // FIFO
+    input logic [31:0] fifo_in,
     input logic push_en,
     input logic pop_en,
     output logic [31:0] fifo_out,
@@ -123,19 +123,12 @@ module test_wrapper(
         .clk(clk),
         .rst(rst),
         .data_in(osr_data_in),
-        .mov_in(mov_in),
-        .mov_out(mov_out),
-        .mov(mov),
-        .fifo_in(fifo_in),
-        .fifo_pull(fifo_pull),
         .osr(osr),
         .shift_out(osr_shift_out),
-        .shift_en(shift_en),
-        .pull_thresh(pull_thresh),
-        .shiftdir(shiftdir),
-        .autopull(autopull),
-        .shift_count(shift_count),
-        .output_shift_counter(output_shift_counter)
+        .load(osr_load),
+        .shift_en(osr_shift_en),
+        .shiftdir(osr_shiftdir),
+        .shift_count(osr_shift_count)
     );
 
     fifo uut_fifo(

@@ -2,8 +2,15 @@
 
 module output_shift_register(
     input logic clk, rst,
-    input osr_data_t data,
-    input osr_control_t control
+    // DATA
+    input logic [31:0] data_in, // Set on MOV, PULL or autopull
+    output logic [31:0] osr, // Allows FSM to read OSR for MOV instructions
+    output logic [31:0] shift_out, // Set on OUT
+    // CTRL
+    input logic load, // Set on MOV, PULL, or autopull
+    input logic shift_en, // Set on OUT
+    input logic shiftdir, // Set by control register 0 = left, 1 = right
+    input logic [5:0] shift_count // Set on OUT
 );
 
 // Essentially the OSR needs to know whether it is to pull the value
@@ -13,18 +20,20 @@ module output_shift_register(
 
 always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
-        data.shift_out <= 32'b0;
-        data.osr <= 32'b0;
+        shift_out <= 32'b0;
+        osr <= 32'b0;
     end else begin
-        if (control.osr_load) begin
-            data.osr <= data.data_in;
-        end else if (control.shift_en) begin
-            if (control.shiftdir) begin
-                data.shift_out <= data.osr[control.shift_count-1:0] << (32 - control.shift_count);
-                data.osr <= data.osr >> control.shift_count;
+        if (load) begin
+            osr <= data_in;
+        end else if (shift_en) begin
+            if (shiftdir) begin
+                // Right shift
+                shift_out <= (osr << (32 - shift_count)) >> (32 - shift_count);
+                osr <= osr >> shift_count;
             end else begin
-                data.shift_out <= data.osr[31 -: control.shift_count] >> (32 - control.shift_count);
-                data.osr <= data.osr << control.shift_count;
+                // Left shift
+                shift_out <= (osr >> (32 - shift_count));
+                osr <= osr << shift_count;
             end
         end
     end

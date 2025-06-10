@@ -30,19 +30,6 @@ typedef struct packed {
     logic empty, full;
 } fifo_status;
 
-typedef struct packed {
-    logic [31:0] data_in; // Set on MOV, PULL, or autopull
-    logic [31:0] shift_out; // Set on OUT
-    logic [31:0] osr; // Allows FSM to read OSR for MOV instructions
-} osr_data_t;
-
-typedef struct packed {
-    logic osr_load; // Set on MOV, PULL, or autopull
-    logic shift_en; // Set on OUT
-    logic shiftdir; // Set by control register 0 = left, 1 = right
-    logic [5:0] shift_count; // Set on OUT
-} osr_control_t;
-
 typedef enum logic [2:0] {
     JMP = 3'b000,
     WAIT = 3'b001,
@@ -66,20 +53,21 @@ typedef enum logic [2:0] {
 } jump_cond_t;
 
 typedef enum logic [2:0] {
-    PINS = 3'b000,
-    X = 3'b001,
-    Y = 3'b010,
-    NULL = 3'b100,
-    PC = 3'b101,
-    ISR = 3'b110,
-    OSR = 3'b111
+    MOV_PINS = 3'b000,
+    MOV_X = 3'b001,
+    MOV_Y = 3'b010,
+    MOV_NULL = 3'b011,
+    MOV_EXEC = 3'b100,
+    MOV_PC = 3'b101,
+    MOV_ISR = 3'b110,
+    MOV_OSR = 3'b111
 } mov_src_dest_t;
 
 typedef enum logic [2:0] {
-    PINS = 3'b000,
-    X = 3'b001,
-    Y = 3'b010,
-    PINDIRS = 3'b100
+    SET_PINS = 3'b000,
+    SET_X = 3'b001,
+    SET_Y = 3'b010,
+    SET_PINDIRS = 3'b100
 } set_dest_t;
 
 `endif
