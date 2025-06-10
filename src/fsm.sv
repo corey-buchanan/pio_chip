@@ -65,29 +65,35 @@ module fsm(
     );
 
     // OSR Management
-    logic [31:0] osr_mov_in;
-    logic [1:0] osr_mov;
+    logic autopull;
+    logic [4:0] pull_thresh; // Will be a register input
+    logic [5:0] true_pull_thresh;
+    logic [4:0] out_shift_count; // Might be a register input???
+    logic [5:0] true_out_shift_count;
+    logic [5:0] osr_shift_counter;
+
+    osr_data_t osr_data;
+    osr_control_t osr_control;
+
+    assign osr_control.shift_count = true_out_shift_count;
+
+    always_comb begin
+        if (pull_thresh == 0) true_pull_thresh = 6'd32;
+        else true_pull_thresh = {1'b0, pull_thresh};
+
+        if (out_shift_count == 0) true_out_shift_count = 6'd32;
+        else true_out_shift_count = {1'b0, out_shift_count};
+    end
 
     output_shift_register osr(
         .clk(clk),
         .rst(rst),
-        .mov_in(osr_mov_in),
-        .mov_out(),
-        .mov(osr_mov),
-        .fifo_in(tx_data_out),
-        .fifo_pull(),
-        .data_out(),
-        .shift_en(),
-        .pull_thresh(),
-        .shiftdir(),
-        .autopull(),
-        .shift_count(),
-        .fifo_pulled(),
-        .output_shift_counter()
+        .data(osr_data),
+        .control(osr_control)
     );
 
     // Logic for: jump, jump_en, pc_en
-    always @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             jump <= 5'b0;
             jump_en <= 0;
@@ -149,7 +155,6 @@ module fsm(
                 WAIT: begin
                     // Do nothing for now
                     // We'll pretend it's a no-op instruction for the moment
-                    jump <= jump;
                     jump_en <= 0;
                     pc_en <= 1;
                 end
@@ -158,7 +163,6 @@ module fsm(
                 // OUT
 
                 PUSH_PULL: begin
-                    jump <= jump;
                     jump_en <= 0;
                     if (!instruction[7]) begin
                         // PUSH
@@ -194,8 +198,8 @@ module fsm(
                 // MOV
 
                 // IRQ
+
                 default: begin
-                    jump <= jump;
                     jump_en <= 0;
                     pc_en <= 1;
                 end
@@ -204,42 +208,102 @@ module fsm(
     end
 
     // Logic for x, y
-    always @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             x <= 32'b0;
             y <= 32'b0;
         end else begin
             case (instruction[15:13])
+                MOV: begin
+                    if (instruction[7:5] == mov_src_dest_t.X) begin
+                    // If X is the destination
+                        case (instruction[2:0]) // Source
+                            mov_src_dest_t.PINS: begin
+                                // TODO - implement
+                            end
+                            mov_src_dest_t.X: begin
+                                // NOOP
+                            end
+                            mov_src_dest_t.Y: begin
+                                x <= y;
+                            end
+                            NULL: begin
+                                x <= 32'b0;
+                            end
+                            EXEC: begin
+                                // TODO - implement
+                            end
+                            PC: begin
+                                // TODO - implement
+                            end
+                            ISR: begin
+                                // TODO - implement
+                            end
+                            OSR: begin
+                                x <= osr_data.osr;
+                            end
+                        endcase
+                    end else if (instruction[7:5] == mov_src_dest_t.Y) begin
+                    // If Y is the destination
+                        case (instruction[2:0]) // Source
+                            mov_src_dest_t.PINS: begin
+                                // TODO - implement
+                            end
+                            mov_src_dest_t.X: begin
+                                y <= x;
+                            end
+                            mov_src_dest_t.Y: begin
+                                // NOOP
+                            end
+                            NULL: begin
+                                y <= 32'b0;
+                            end
+                            EXEC: begin
+                                // TODO - implement
+                            end
+                            PC: begin
+                                // TODO - implement
+                            end
+                            ISR: begin
+                                // TODO - implement
+                            end
+                            OSR: begin
+                                y <= osr_data.osr;
+                            end
+                        endcase
+                    end
+                end
                 SET: begin
                     case (instruction[7:5])
-                        3'b001: begin
+                        set_dest_t.X: begin
                             x[31:5] <= 27'b0;
                             x[4:0] <= instruction[4:0];
                         end
-                        3'b010: begin
+                        set_dest_t.Y: begin
                             y[31:5] <= 27'b0;
                             y[4:0] <= instruction[4:0];
                         end
-                        default: begin
-                        end
                     endcase
-                end
-                default: begin
-                    x <= x;
-                    y <= y;
                 end
             endcase
         end
     end
 
     // Logic for tx_pop_en, rx_push_en
-    always @(posedge clk or posedge rst) begin
+    // Probabily will have most of the OSR/ISR logic here
+    always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             tx_pop_en <= 0;
             rx_push_en <= 0;
         end else begin
             case (instruction[15:13])
                 // TODO: MOV, OUT
+                MOV: begin
+
+                end
+                OUT: begin
+
+                end
                 PUSH_PULL: begin
                     if (!instruction[7]) begin
                         // PUSH
@@ -247,6 +311,7 @@ module fsm(
                             // Can't push to FIFO
                             rx_push_en <= 0; // TODO - wire up autopull logic for other instructions
                         end else begin
+                            // Can push to FIFO
                             if (instruction[6] /* isr_input_shift_counter < autopush_threshold */) begin
                                 rx_push_en <= 0;
                             end else begin
@@ -262,11 +327,11 @@ module fsm(
                             tx_pop_en <= 1; // TODO - Wire up autopull logic for other instructions
                             if (!instruction[5]) begin
                                 // Block = 0 - pull from empty means copy scratch X to OSR
-                                // TODO - figure out where to put osr_mov_in, osr_mov logic
-                                osr_mov_in <= x;
-                                osr_mov <= 2'b01;
+                                osr_data.data_in <= x;
+                                osr_control.osr_load <= 1;
                             end
                         end else begin
+                            // Can pull from FIFO
                             if (instruction[6] /* osr_output_shift_counter < autopull_threshold */) begin
                                 // IfEmpty = 1 - do nothing unless total output shift count > autopull threshold
                                 tx_pop_en <= 0;

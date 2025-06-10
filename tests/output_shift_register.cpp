@@ -10,10 +10,10 @@ protected:
         uut->fifo_in = 0x00000000;
         uut->fifo_pull = 0;
         uut->shift_en = 0;
-        uut->pull_thresh = 0b00000; // Encoding for 32
+        uut->pull_thresh = 0b100000; // Encoding for 32
         uut->shiftdir = 0;
         uut->autopull = 0;
-        uut->shift_count = 0b00000; // Encoding for 32
+        uut->shift_count = 0b100000; // Encoding for 32
         uut->osr = 0x00000000;
 
         uut->eval();
@@ -64,7 +64,7 @@ TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_data_out, 0x87654321);
+    EXPECT_EQ(uut->osr_shift_out, 0x87654321);
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsWeirdNumberOfBitsToDataOut) {
@@ -81,11 +81,11 @@ TEST_F(OutputShiftRegisterTests, OutShiftsWeirdNumberOfBitsToDataOut) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x80000000);
-    EXPECT_EQ(uut->osr_data_out, 0x7FFFFFFF);
+    EXPECT_EQ(uut->osr_shift_out, 0x7FFFFFFF);
 
     AdvanceOneCycle();
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_data_out, 0x40000000);
+    EXPECT_EQ(uut->osr_shift_out, 0x40000000);
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut1By1) {
@@ -105,7 +105,7 @@ TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut1By1) {
         short expected = bit_stream >> (32 - i) & 0b1;
         AdvanceOneCycle();
         EXPECT_EQ(uut->osr, bit_stream << i & 0xFFFFFFFF);
-        EXPECT_EQ(uut->osr_data_out, expected);
+        EXPECT_EQ(uut->osr_shift_out, expected);
     }
 }
 
@@ -122,18 +122,18 @@ TEST_F(OutputShiftRegisterTests, DataOutHoldsBetweenShifts) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x76543210);
-    EXPECT_EQ(uut->osr_data_out, 0x00000008);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000008);
 
-    // Shift occurs, so data_out is replaced
+    // Shift occurs, so shift_out is replaced
     AdvanceOneCycle();
     EXPECT_EQ(uut->osr, 0x65432100);
-    EXPECT_EQ(uut->osr_data_out, 0x00000007);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000007);
 
     uut->shift_en = 0;
     AdvanceOneCycle();
 
-    // Expect data_out to hold value if nothing is happening
-    EXPECT_EQ(uut->osr_data_out, 0x00000007);
+    // Expect shift_out to hold value if nothing is happening
+    EXPECT_EQ(uut->osr_shift_out, 0x00000007);
 }
 
 TEST_F(OutputShiftRegisterTests, OutRightShift) {
@@ -150,12 +150,12 @@ TEST_F(OutputShiftRegisterTests, OutRightShift) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x08765432);
-    EXPECT_EQ(uut->osr_data_out, 0x00000008);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000008);
 
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00876543);
-    EXPECT_EQ(uut->osr_data_out, 0x00000004);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000004);
 
     uut->shift_en = 0;
     AdvanceOneCycle();
@@ -175,19 +175,19 @@ TEST_F(OutputShiftRegisterTests, OutShiftDirectionChanges) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00555555);
-    EXPECT_EQ(uut->osr_data_out, 0x000000AA);
+    EXPECT_EQ(uut->osr_shift_out, 0x000000AA);
 
     // Shift left
     uut->shiftdir = 0;
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x55555500);
-    EXPECT_EQ(uut->osr_data_out, 0x00000000);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000000);
 
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x55550000);
-    EXPECT_EQ(uut->osr_data_out, 0x00000055);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000055);
 
     uut->shift_en = 0;
     AdvanceOneCycle();
@@ -205,12 +205,12 @@ TEST_F(OutputShiftRegisterTests, OutShiftsZerosAfterEmpty) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_data_out, 0xBAADD00D);
+    EXPECT_EQ(uut->osr_shift_out, 0xBAADD00D);
 
     for (int i = 0; i < 10; i++) {
         AdvanceOneCycle();
         EXPECT_EQ(uut->osr, 0x00000000);
-        EXPECT_EQ(uut->osr_data_out, 0x00000000);
+        EXPECT_EQ(uut->osr_shift_out, 0x00000000);
     }
 }
 
@@ -219,7 +219,7 @@ TEST_F(OutputShiftRegisterTests, FifoPullRefillsFromEmpty) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_data_out, 0x00000000);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000000);
     EXPECT_EQ(uut->output_shift_counter, 32);
 
     uut->shift_en = 0;
@@ -228,13 +228,11 @@ TEST_F(OutputShiftRegisterTests, FifoPullRefillsFromEmpty) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x3B353B35);
-    EXPECT_EQ(uut->fifo_pulled, 1);
     EXPECT_EQ(uut->output_shift_counter, 0);
 
     uut->fifo_pull = 0;
     AdvanceOneCycle();
     EXPECT_EQ(uut->osr, 0x3B353B35);
-    EXPECT_EQ(uut->fifo_pulled, 0);
 }
 
 TEST_F(OutputShiftRegisterTests, FifoPullRefillsFromPartiallyEmpty) {
@@ -250,7 +248,7 @@ TEST_F(OutputShiftRegisterTests, FifoPullRefillsFromPartiallyEmpty) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0xCD000000);
-    EXPECT_EQ(uut->osr_data_out, 0x00001BAD);
+    EXPECT_EQ(uut->osr_shift_out, 0x00001BAD);
     EXPECT_EQ(uut->output_shift_counter, 16);
 
     uut->shift_en = 0;
@@ -259,7 +257,6 @@ TEST_F(OutputShiftRegisterTests, FifoPullRefillsFromPartiallyEmpty) {
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0xCD003B35);
-    EXPECT_EQ(uut->fifo_pulled, 1);
     EXPECT_EQ(uut->output_shift_counter, 0);
 }
 

@@ -33,9 +33,9 @@ module test_wrapper(
     input logic [1:0] mov,
     input logic fifo_pull, shift_en,
     input logic shiftdir, autopull,
-    input logic [4:0] shift_count, pull_thresh,
-    output logic [31:0] osr, osr_data_out,
-    output logic fifo_pulled,
+    input logic [5:0] shift_count, pull_thresh,
+    input logic [31:0] osr_data_in,
+    output logic [31:0] osr, osr_shift_out,
     output logic [5:0] output_shift_counter,
     input logic push_en,
     input logic pop_en,
@@ -122,22 +122,21 @@ module test_wrapper(
     output_shift_register uut_output_shift_register(
         .clk(clk),
         .rst(rst),
+        .data_in(osr_data_in),
         .mov_in(mov_in),
         .mov_out(mov_out),
         .mov(mov),
         .fifo_in(fifo_in),
         .fifo_pull(fifo_pull),
-        .data_out(osr_data_out),
+        .osr(osr),
+        .shift_out(osr_shift_out),
         .shift_en(shift_en),
         .pull_thresh(pull_thresh),
         .shiftdir(shiftdir),
         .autopull(autopull),
         .shift_count(shift_count),
-        .fifo_pulled(fifo_pulled),
         .output_shift_counter(output_shift_counter)
     );
-
-    assign osr = uut_output_shift_register.osr;
 
     fifo uut_fifo(
         .clk(clk),
