@@ -6,7 +6,9 @@ module fsm(
     input logic [31:0] external_data_in,
     input logic [15:0] instruction,
     output logic [4:0] pc,
-    output logic [31:0] external_data_out
+    output logic [31:0] external_data_out,
+    // Inputs from control_regfile
+    input logic out_shiftdir
     );
 
     logic [4:0] wrap_top, wrap_bottom;
@@ -77,9 +79,10 @@ module fsm(
     // OSR CTRL
     logic osr_load;
     logic osr_shift_en;
-    logic osr_shiftdir;
-    logic [4:0] out_shift_count; // Might be a register input???
+    logic [4:0] out_shift_count; // Instruction[4:0]
     logic [5:0] true_out_shift_count;
+
+    assign out_shift_count = instruction[4:0];
 
     always_comb begin
         if (pull_thresh == 0) true_pull_thresh = 6'd32;
@@ -97,7 +100,7 @@ module fsm(
         .shift_out(osr_shift_out),
         .load(osr_load),
         .shift_en(osr_shift_en),
-        .shiftdir(osr_shiftdir),
+        .shiftdir(out_shiftdir),
         .shift_count(true_out_shift_count)
     );
 
@@ -223,6 +226,13 @@ module fsm(
             y <= 32'b0;
         end else begin
             case (instruction[15:13])
+                OUT: begin
+                    if (instruction[7:5] == OUT_X) begin
+                        x <= osr_shift_out;
+                    end else if (instruction[7:5] == OUT_Y) begin
+                        y <= osr_shift_out;
+                    end
+                end
                 MOV: begin
                     if (instruction[7:5] == MOV_X) begin
                     // If X is the destination
@@ -310,17 +320,61 @@ module fsm(
         if (rst) begin
             tx_pop_en <= 0;
             rx_push_en <= 0;
+            osr_load <= 0;
+            osr_shift_counter <= 6'b0;
         end else begin
             case (instruction[15:13])
-                // TODO: MOV, OUT
                 MOV: begin
-
+                    if (instruction[7:5] == MOV_ISR) begin // Destination
+                        // TODO implement
+                        osr_load <= 0;
+                    end
+                    else if (instruction[7:5] == MOV_OSR) begin // Destination
+                        osr_shift_counter <= 6'b0;
+                        case (instruction[2:0]) // Source
+                            MOV_PINS: begin
+                                // TODO implement
+                                osr_load <= 0;
+                            end
+                            MOV_X: begin
+                                osr_data_in <= x;
+                                osr_load <= 1;
+                            end
+                            MOV_Y: begin
+                                osr_data_in <= y;
+                                osr_load <= 1;
+                            end
+                            MOV_NULL: begin
+                                osr_data_in <= 32'b0;
+                                osr_load <= 1;
+                            end
+                            MOV_PC: begin
+                                // TODO Implement, based on exectrl_statusctrl
+                                osr_load <= 0;
+                            end
+                            MOV_ISR: begin
+                                // TODO implement
+                                osr_load <= 0;
+                            end
+                            MOV_OSR: begin
+                                // Equivalent to a NOOP
+                                osr_load <= 0;
+                            end
+                            default: begin
+                                osr_load <= 0;
+                            end
+                        endcase
+                    end
                 end
                 OUT: begin
-
+                    // Shift count is assigned combinationally
+                    osr_load <= 0;
+                    osr_shift_en <= 1;
+                    osr_shift_counter <= osr_shift_counter + true_out_shift_count;
                 end
                 PUSH_PULL: begin
                     if (!instruction[7]) begin
+                        osr_load <= 0;
                         // PUSH
                         if (rx_fifo_count == 4 && !external_pop_en) begin
                             // Can't push to FIFO
@@ -339,19 +393,27 @@ module fsm(
                         // We will need similar logic to this for the autopull
                         if (tx_fifo_count == 0 && !external_push_en) begin
                             // Can't pull from FIFO
-                            tx_pop_en <= 1; // TODO - Wire up autopull logic for other instructions
-                            if (!instruction[5]) begin
+                            tx_pop_en <= 0; // TODO - Wire up autopull logic for other instructions
+                            if (instruction[5]) begin
+                                // Block = 1 - pull from empty means stall
+                                osr_load <= 0;
+                            end
+                            else begin
                                 // Block = 0 - pull from empty means copy scratch X to OSR
                                 osr_data_in <= x;
                                 osr_load <= 1;
+                                osr_shift_counter <= 6'b0;
                             end
                         end else begin
                             // Can pull from FIFO
                             if (instruction[6] /* osr_output_shift_counter < autopull_threshold */) begin
                                 // IfEmpty = 1 - do nothing unless total output shift count > autopull threshold
                                 tx_pop_en <= 0;
+                                osr_load <= 0;
                             end else begin
                                 tx_pop_en <= 1;
+                                osr_load <= 1;
+                                osr_shift_counter <= 6'b0;
                             end
                         end
                     end

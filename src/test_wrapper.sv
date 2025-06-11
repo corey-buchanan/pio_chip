@@ -1,29 +1,30 @@
 `include "types.svh"
 
 module test_wrapper(
-    // TODO: Organize these a little better
     input logic clk, rst,
+    // PROGRAM COUNTER
     input logic [4:0] wrap_top, wrap_bottom,
     input logic [4:0] jump,
     input logic jump_en,
     input logic pc_en,
     output logic [4:0] pc,
+    // INSTRUCTION REGFILE
     input logic [15:0] instr_in,
     input logic [4:0] write_addr,
     input logic write_en,
     input logic [4:0] read_addr,
     output logic [15:0] instr_out,
-    input logic [15:0] instruction,
-    output logic [4:0] fsm_pc,
-    output logic [31:0] x, y,
+    // GPIO
     input logic [31:0] out_data, sync_bypass, dir, pde, pue,
     output logic [31:0] in_data,
     inout logic [31:0] gpio,
-    input logic [1:0] core_select [31:0],
+    // FSM OUTPUT ARBITRATOR
     input logic [31:0] fsm_output [3:0],
     input logic [31:0] fsm_drive [3:0],
     output logic [31:0] fsm_core_output,
     output logic [31:0] fsm_core_drive,
+    // CORE OUTPUT ARBITRATOR
+    input logic [1:0] core_select [31:0],
     input logic [31:0] core_output [3:0],
     input logic [31:0] core_drive [3:0],
     output logic [31:0] gpio_output,
@@ -46,9 +47,14 @@ module test_wrapper(
     output [31:0] fifo_memory [0:3],
     output logic [1:0] fifo_head,
     output logic [1:0] fifo_tail,
+    // FSM
+    input logic [15:0] instruction,
+    output logic [4:0] fsm_pc,
     input logic external_push_en, external_pop_en,
     input logic [31:0] external_data_in,
-    output logic [31:0] external_data_out
+    output logic [31:0] external_data_out,
+    input logic out_shiftdir,
+    output logic [31:0] x, y
     );
 
     initial begin
@@ -86,7 +92,8 @@ module test_wrapper(
         .external_pop_en(external_pop_en),
         .instruction(instruction),
         .pc(fsm_pc),
-        .external_data_out(external_data_out)
+        .external_data_out(external_data_out),
+        .out_shiftdir(out_shiftdir)
     );
     
     assign x = uut_fsm.x;

@@ -10,6 +10,7 @@ module pio_core(
     logic [15:0] instr_in;
     logic [4:0] write_addr;
     logic write_en;
+    logic out_shiftdir; // TODO - wire up to control register
 
     // TODO: Remove when spi is wired up
     initial begin
@@ -30,7 +31,8 @@ module pio_core(
         .external_data_in(fifo_in),
         .instruction(instruction),
         .pc(pc),
-        .external_data_out(fifo_out)
+        .external_data_out(fifo_out),
+        .out_shiftdir(out_shiftdir)
     );
 
     // TODO - Wire these up to the FSMs

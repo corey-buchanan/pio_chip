@@ -53,6 +53,17 @@ typedef enum logic [2:0] {
 } jump_cond_t;
 
 typedef enum logic [2:0] {
+    OUT_PINS = 3'b000,
+    OUT_X = 3'b001,
+    OUT_Y = 3'b010,
+    OUT_NULL = 3'b011,
+    OUT_PINDIRS = 3'b100,
+    OUT_PC = 3'b101,
+    OUT_ISR = 3'b110,
+    OUT_EXEC = 3'b111
+} out_dest_t;
+
+typedef enum logic [2:0] {
     MOV_PINS = 3'b000,
     MOV_X = 3'b001,
     MOV_Y = 3'b010,

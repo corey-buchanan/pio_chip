@@ -15,8 +15,6 @@ protected:
     }
 };
 
-// TODO: Implement rest of tests
-
 TEST_F(OutputShiftRegisterTests, MovOrPullFillsEmptyOsr) {
     uut->osr_data_in = 0x01234567;
     AdvanceOneCycle();
