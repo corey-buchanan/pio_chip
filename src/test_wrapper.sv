@@ -54,6 +54,8 @@ module test_wrapper(
     input logic [31:0] external_data_in,
     output logic [31:0] external_data_out,
     input logic out_shiftdir,
+    input logic autopull,
+    input logic [4:0] pull_thresh,
     output logic [31:0] x, y
     );
 
@@ -93,7 +95,9 @@ module test_wrapper(
         .instruction(instruction),
         .pc(fsm_pc),
         .external_data_out(external_data_out),
-        .out_shiftdir(out_shiftdir)
+        .out_shiftdir(out_shiftdir),
+        .autopull(autopull),
+        .pull_thresh(pull_thresh)
     );
     
     assign x = uut_fsm.x;

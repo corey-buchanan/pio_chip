@@ -6,6 +6,9 @@ protected:
         VerilatorTestFixture::SetUp();
 
         uut->instruction = 0b0000'0000'0000'0000;
+        uut->out_shiftdir = 1; // Right shift
+        uut->autopull = 0;
+        uut->pull_thresh = 0; // Encoding for 32 bits
         uut->eval();
     }
 };
@@ -127,6 +130,99 @@ TEST_F(FsmTests, TestJumpXNotEqualY) {
 
     AdvanceOneCycle();
     EXPECT_EQ(uut->fsm_pc, 0b00000); // Verify jump was taken
+}
+
+// TODO - Implement this test
+TEST_F(FsmTests, TestJumpOSRNotEmpty) {
+
+}
+
+TEST_F(FsmTests, TestOut32Bits) {
+
+}
+
+TEST_F(FsmTests, TestOut8Bits) {
+
+}
+
+TEST_F(FsmTests, TestOutAutopullOneCycle) {
+
+}
+
+TEST_F(FsmTests, TestOutAutopullMultiCycle) {
+    // Autopull should pull on the same cycle as the out instruction
+    // but only if the fifo is not empty.
+    // We are testing autpull where the fifo is empty on the first cycle,
+    // but filled on a later cycle.
+}
+
+TEST_F(FsmTests, TestOutAutopullStallOnEmpty) {
+
+}
+
+TEST_F(FsmTests, TestPullNormal) {
+
+}
+
+TEST_F(FsmTests, TestPullBlockStall) {
+
+}
+
+TEST_F(FsmTests, TestPullBlockXToOSR) {
+
+}
+
+TEST_F(FsmTests, TestPullUnderThresholdDoNothing) {
+
+}
+
+TEST_F(FsmTests, TestMovXY) {
+    
+}
+
+TEST_F(FsmTests, TestMovXNull) {
+    
+}
+
+TEST_F(FsmTests, TestMovXOSR) {
+
+}
+
+TEST_F(FsmTests, TestMovYX) {
+
+}
+
+TEST_F(FsmTests, TestMovYNull) {
+    // Preload y with an immediate value
+    // Issue SET Y 31
+    uut->instruction = 0b1110'0000'0101'1111;
+    AdvanceOneCycle();
+
+    // Expect Y to be 31
+    EXPECT_EQ(uut->y, 31);
+
+    // Issue MOV Y, NULL
+    uut->instruction = 0b1010'0000'0100'0011;
+    AdvanceOneCycle();
+
+    // Expect Y to be 0
+    EXPECT_EQ(uut->y, 0);
+}
+
+TEST_F(FsmTests, TestMovYOSR) {
+
+}
+
+TEST_F(FsmTests, TestMovOSRX) {
+
+}
+
+TEST_F(FsmTests, TestMovOSRY) {
+
+}
+
+TEST_F(FsmTests, TestMovOSRNull) {
+
 }
 
 TEST_F(FsmTests, TestSetImmediateXY) {

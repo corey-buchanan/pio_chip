@@ -22,7 +22,7 @@ assign can_push = push_en && !status.full;
 assign can_pop = pop_en && !status.empty;
 
 // FIFO memory and pointer logic
-always @(posedge clk or posedge rst) begin
+always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
         // Clear all the memory
         for (int i = 0; i < 4; i = i + 1) begin
@@ -47,7 +47,7 @@ always @(posedge clk or posedge rst) begin
 end
 
 // Counter logic
-always @(posedge clk or posedge rst) begin
+always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
         fifo_count <= 3'b000;
     end else begin

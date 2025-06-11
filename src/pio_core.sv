@@ -21,6 +21,8 @@ module pio_core(
     // TODO: Wire these up properly
     logic push_en, pop_en;
     logic [31:0] fifo_in, fifo_out;
+    logic autopull;
+    logic [4:0] pull_thresh;
 
     // TODO: Add the other FSMs later
     fsm fsm(
@@ -32,7 +34,9 @@ module pio_core(
         .instruction(instruction),
         .pc(pc),
         .external_data_out(fifo_out),
-        .out_shiftdir(out_shiftdir)
+        .out_shiftdir(out_shiftdir),
+        .autopull(autopull),
+        .pull_thresh(pull_thresh)
     );
 
     // TODO - Wire these up to the FSMs

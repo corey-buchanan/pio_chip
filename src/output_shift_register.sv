@@ -39,31 +39,4 @@ always_ff @(posedge clk or posedge rst) begin
     end
 end
 
-// From the PIO spec:
-//
-// Non-out cycles
-// 1 if MOV or PULL:
-// 2    osr count = 0
-// 3
-// 4 if osr count >= threshold:
-// 5    if tx fifo not empty:
-// 6        osr = pull()
-// 7        osr count = 0
-
-// OUT cycles
-//  1 if osr count >= threshold:
-//  2   if tx fifo not empty:
-//  3       osr = pull()
-//  4       osr count = 0
-//  5   stall
-//  6 else:
-//  7   output(osr)
-//  8   osr = shift(osr, out count)
-//  9   osr count = saturate(osr count + out count)
-// 10
-// 11 if osr count >= threshold:
-// 12    if tx fifo not empty:
-// 13        osr = pull()
-// 14        osr count = 0
-
 endmodule
