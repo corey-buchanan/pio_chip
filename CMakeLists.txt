@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 project(PIO_Chip)
 
+set(PICO_SDK_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external/pico-sdk)
+
 find_package(verilator HINTS $ENV{VERILATOR_ROOT})
 
 set(SIM_SRCS
@@ -46,7 +48,7 @@ set(UNIT_TEST_C_SRCS
 
 # Main sim
 add_executable(sim tb/tb_main.cpp)
-target_compile_options(sim PRIVATE -std=c++23)
+target_compile_options(sim PRIVATE -std=c++23 -include cassert)
 verilate(sim
     SOURCES ${SIM_SRCS}
     INCLUDE_DIRS include
@@ -58,8 +60,17 @@ verilate(sim
 add_subdirectory(lib/googletest)
 add_executable(unit_tests ${UNIT_TEST_C_SRCS})
 set_target_properties(unit_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 target_link_libraries(unit_tests PRIVATE gtest gtest_main)
-target_compile_options(unit_tests PRIVATE -std=c++23)
+add_compile_options(-include cassert)
+target_compile_options(unit_tests PRIVATE -std=c++23 -include cassert)
+target_include_directories(unit_tests PRIVATE
+    ${PICO_SDK_PATH}/src/common/pico_base_headers/include
+    ${PICO_SDK_PATH}/src/rp2_common/hardware_pio/include
+    ${PICO_SDK_PATH}/src/host/pico_platform/include
+    ${CMAKE_SOURCE_DIR}/pico_dummy_files
+)
+
 verilate(unit_tests
     SOURCES ${UNIT_TEST_SRCS}
     INCLUDE_DIRS include

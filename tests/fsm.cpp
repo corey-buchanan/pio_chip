@@ -195,14 +195,14 @@ TEST_F(FsmTests, TestMovYX) {
 TEST_F(FsmTests, TestMovYNull) {
     // Preload y with an immediate value
     // Issue SET Y 31
-    uut->instruction = 0b1110'0000'0101'1111;
+    uut->instruction = pio_encode_set(pio_y, 31);
     AdvanceOneCycle();
 
     // Expect Y to be 31
     EXPECT_EQ(uut->y, 31);
 
     // Issue MOV Y, NULL
-    uut->instruction = 0b1010'0000'0100'0011;
+    uut->instruction = pio_encode_mov(pio_y, pio_null);
     AdvanceOneCycle();
 
     // Expect Y to be 0

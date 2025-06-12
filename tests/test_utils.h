@@ -1,9 +1,11 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
+#include <cassert>
 #include <cstdint>
 #include "Vtest_wrapper.h"
 #include "gtest/gtest.h"
+#include "hardware/pio_instructions.h"
 
 class VerilatorTestFixture : public ::testing::Test {
 protected:
