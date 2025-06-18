@@ -134,7 +134,7 @@ module fsm(
                             // If X-- (X non-zero prior to decrement)
                             if (x != 0) jump_en <= 1;
                             else jump_en <= 0;
-                            x <= x - 1;
+                            x <= x - 1; // TODO - move this to the x, y logic
                         end
                         Y_ZERO: begin
                             // If !Y (Y zero)
@@ -145,7 +145,7 @@ module fsm(
                             // If Y-- (Y non-zero prior to decrement)
                             if (y != 0) jump_en <= 1;
                             else jump_en <= 0;
-                            y <= y - 1;
+                            y <= y - 1; // TODO - move this to the x, y logic
                         end
                         X_NE_Y: begin
                             // If X!=Y

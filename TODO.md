@@ -3,7 +3,6 @@
 - [-] Implement instructions in the FSM
 - [-] Unit test everything
 - [-] Document anything that is different than the PIO
-- [ ] Build an assembler, or import it to make testing easier
   - The FSM tests are tricky to read and write. Being able to call a function to assemble the instructions would make things much simpler
 - [ ] Add UVM testbenches - may not be necessary right now, but I want to study and understand UVM
 - [ ] Add SPI controller
@@ -13,6 +12,7 @@
 - [ ] Implement clock divider
 - [ ] Add ISR
 - [ ] Create interrupt controller
+- [x] Build an assembler, or import it to make testing easier (imported)
 - [x] Convert to System Verilog, using its useful extensions - we can try to bundle and better name the myriad of wires
 - [x] Decide on number of cores and FSMs/core - 4 cores, 4 FSMs/core
   - 2x the # of cores of the RPI PIO, but same #FSMs per core. Will require adjusting some of the memory mapped registers.

@@ -56,7 +56,10 @@ module test_wrapper(
     input logic out_shiftdir,
     input logic autopull,
     input logic [4:0] pull_thresh,
-    output logic [31:0] x, y
+    output logic [31:0] x, y,
+    output logic [31:0] osr_data,
+    output logic [5:0] out_shift_counter,
+    output logic osr_empty
     );
 
     initial begin
@@ -102,6 +105,9 @@ module test_wrapper(
     
     assign x = uut_fsm.x;
     assign y = uut_fsm.y;
+    assign osr_data = uut_fsm.osr_data;
+    assign out_shift_counter = uut_fsm.out_shift_counter;
+    assign osr_empty = uut_fsm.osr_empty;
 
     gpio uut_gpio(
         .clk(clk),
