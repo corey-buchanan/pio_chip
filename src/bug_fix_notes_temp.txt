@@ -1,0 +1,18 @@
+I'm writing this down before taking a break so I don't forget what I figured out.
+
+Basically I've figured out the bug with:
+OUT <dest> <#>
+
+The osr loading would take a whole cycle being sequential and not combinational, so I fixed shift_out and made an osr_next signal, that are assigned combinationally
+
+I thought that would fix the problem, but osr_data_in and osr_load aren't asserted until a clock signal, which also delays the osr by a cycle in picking up data, which threw off our test - all PIO instructions should happen in one cycle, meaning the instruction executes during the current cycle and results are ready in their registers by posedge clk for next cycle.
+
+osr_load and osr_data_in need to be set combinationally
+based on the current state of the FIFO and the Instruction being executed
+
+whatever we have in sequential logic, make it combinational
+
+osr load/osr_data_in logic:
+- If autopull is enabled and the shift count reaches the threshold, load from FIFO
+- If a pull instruction is executed and fifo not empty, load from FIFO
+- If a MOV instruction is executed with the destination being OSR, load from src register

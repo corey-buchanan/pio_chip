@@ -134,7 +134,7 @@ module fsm(
                             // If X-- (X non-zero prior to decrement)
                             if (x != 0) jump_en <= 1;
                             else jump_en <= 0;
-                            x <= x - 1; // TODO - move this to the x, y logic
+                            // Decrement in X, Y logic
                         end
                         Y_ZERO: begin
                             // If !Y (Y zero)
@@ -145,7 +145,7 @@ module fsm(
                             // If Y-- (Y non-zero prior to decrement)
                             if (y != 0) jump_en <= 1;
                             else jump_en <= 0;
-                            y <= y - 1; // TODO - move this to the x, y logic
+                            // Decrement in X, Y logic
                         end
                         X_NE_Y: begin
                             // If X!=Y
@@ -238,6 +238,15 @@ module fsm(
             y <= 32'b0;
         end else begin
             case (instruction[15:13])
+                JMP: begin
+                    if (instruction[7:5] == X_NZ_DEC) begin
+                        // If X-- (X non-zero prior to decrement)
+                        x <= x - 1;
+                    end else if (instruction[7:5] == Y_NZ_DEC) begin
+                        // If Y-- (Y non-zero prior to decrement)
+                        y <= y - 1;
+                    end
+                end
                 OUT: begin
                     if (instruction[7:5] == OUT_X) begin
                         x <= osr_shift_out;

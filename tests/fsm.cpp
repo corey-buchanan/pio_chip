@@ -180,15 +180,16 @@ TEST_F(FsmTests, TestOutX) {
     // Load the OSR with an immediate value from Y
     uut->instruction = pio_encode_set(pio_y, 16);
     AdvanceOneCycle();
+
+    EXPECT_EQ(uut->osr_empty, 0);
+
     uut->instruction = pio_encode_mov(pio_osr, pio_y);
     AdvanceOneCycle();
 
+    EXPECT_EQ(uut->osr_data, 16);
+
     // Output OSR to X
     uut->instruction = pio_encode_out(pio_x, 32);
-    AdvanceOneCycle();
-
-    // Advance one more cycle to allow the out operation to complete
-    // uut->instruction = pio_encode_nop();
     AdvanceOneCycle();
 
     // Expect X to be 16
@@ -199,6 +200,10 @@ TEST_F(FsmTests, TestOutX) {
 
     // Check that the out shift counter is 32
     EXPECT_EQ(uut->out_shift_counter, 32);
+
+    // Advance one more cycle for the osr to be updated
+    uut->instruction = pio_encode_nop();
+    AdvanceOneCycle();
 
     // Check that the OSR data is 0 after the out operation
     EXPECT_EQ(uut->osr_data, 0);

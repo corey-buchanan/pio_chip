@@ -53,10 +53,13 @@ TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut) {
     // Default shift 32 bits
     uut->osr_load = 0;
     uut->osr_shift_en = 1;
-    AdvanceOneCycle();
 
-    EXPECT_EQ(uut->osr, 0x00000000);
+    // View combinational output of shift
+    uut->eval();
     EXPECT_EQ(uut->osr_shift_out, 0x87654321);
+    
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x00000000);
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsWeirdNumberOfBitsToDataOut) {
@@ -69,14 +72,17 @@ TEST_F(OutputShiftRegisterTests, OutShiftsWeirdNumberOfBitsToDataOut) {
     uut->osr_load = 0;
     uut->osr_shift_count = 0x1F;
     uut->osr_shift_en = 1;
-    AdvanceOneCycle();
 
-    EXPECT_EQ(uut->osr, 0x80000000);
+    // View combinational output of shift register
+    uut->eval();
     EXPECT_EQ(uut->osr_shift_out, 0x7FFFFFFF);
+    
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x80000000);
+    EXPECT_EQ(uut->osr_shift_out, 0x40000000);
 
     AdvanceOneCycle();
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_shift_out, 0x40000000);
 }
 
 TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut1By1) {
@@ -93,37 +99,14 @@ TEST_F(OutputShiftRegisterTests, OutShiftsBitsToDataOut1By1) {
     
     for (int i = 1; i <= 32; i++) {
         short expected = bit_stream >> (32 - i) & 0b1;
+
+        // View combinational output of shift register
+        uut->eval();
+        EXPECT_EQ(uut->osr_shift_out, expected);
+
         AdvanceOneCycle();
         EXPECT_EQ(uut->osr, bit_stream << i & 0xFFFFFFFF);
-        EXPECT_EQ(uut->osr_shift_out, expected);
     }
-}
-
-TEST_F(OutputShiftRegisterTests, DataOutHoldsBetweenShifts) {
-    // Initial value
-    uut->osr_data_in = 0x87654321;
-    uut->osr_load = 1;
-    AdvanceOneCycle();
-
-    // Shift count of 4
-    uut->osr_load = 0;
-    uut->osr_shift_count = 0x04;
-    uut->osr_shift_en = 1;
-    AdvanceOneCycle();
-
-    EXPECT_EQ(uut->osr, 0x76543210);
-    EXPECT_EQ(uut->osr_shift_out, 0x00000008);
-
-    // Shift occurs, so shift_out is replaced
-    AdvanceOneCycle();
-    EXPECT_EQ(uut->osr, 0x65432100);
-    EXPECT_EQ(uut->osr_shift_out, 0x00000007);
-
-    uut->osr_shift_en = 0;
-    AdvanceOneCycle();
-
-    // Expect shift_out to hold value if nothing is happening
-    EXPECT_EQ(uut->osr_shift_out, 0x00000007);
 }
 
 TEST_F(OutputShiftRegisterTests, OutRightShift) {
@@ -137,15 +120,17 @@ TEST_F(OutputShiftRegisterTests, OutRightShift) {
     uut->osr_shift_count = 0x04;
     uut->osr_shift_en = 1;
     uut->osr_shiftdir = 1;
-    AdvanceOneCycle();
 
-    EXPECT_EQ(uut->osr, 0x08765432);
+    // View combinational output of shift register
+    uut->eval();
     EXPECT_EQ(uut->osr_shift_out, 0x00000001);
 
     AdvanceOneCycle();
-
-    EXPECT_EQ(uut->osr, 0x00876543);
+    EXPECT_EQ(uut->osr, 0x08765432);
     EXPECT_EQ(uut->osr_shift_out, 0x00000002);
+    
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x00876543);
 
     uut->osr_shift_en = 0;
     AdvanceOneCycle();
@@ -162,22 +147,25 @@ TEST_F(OutputShiftRegisterTests, OutShiftDirectionChanges) {
     uut->osr_shift_count = 0x08;
     uut->osr_shift_en = 1;
     uut->osr_shiftdir = 1;
-    AdvanceOneCycle();
 
-    EXPECT_EQ(uut->osr, 0x00555555);
+    uut->eval();
     EXPECT_EQ(uut->osr_shift_out, 0x00000055);
+
+    AdvanceOneCycle();
+    EXPECT_EQ(uut->osr, 0x00555555);
 
     // Shift left
     uut->osr_shiftdir = 0;
+
+    uut->eval();
+    EXPECT_EQ(uut->osr_shift_out, 0x00000000);
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x55555500);
-    EXPECT_EQ(uut->osr_shift_out, 0x00000000);
+    EXPECT_EQ(uut->osr_shift_out, 0x00000055);
 
     AdvanceOneCycle();
-
     EXPECT_EQ(uut->osr, 0x55550000);
-    EXPECT_EQ(uut->osr_shift_out, 0x00000055);
 
     uut->osr_shift_en = 0;
     AdvanceOneCycle();
@@ -192,14 +180,18 @@ TEST_F(OutputShiftRegisterTests, OutShiftsZerosAfterEmpty) {
     // Shift count of 32
     uut->osr_load = 0;
     uut->osr_shift_en = 1;
+
+    // View combinational output of shift register
+    uut->eval();
+    EXPECT_EQ(uut->osr_shift_out, 0xBAADD00D);
+
     AdvanceOneCycle();
 
     EXPECT_EQ(uut->osr, 0x00000000);
-    EXPECT_EQ(uut->osr_shift_out, 0xBAADD00D);
 
     for (int i = 0; i < 10; i++) {
-        AdvanceOneCycle();
         EXPECT_EQ(uut->osr, 0x00000000);
+        AdvanceOneCycle();
         EXPECT_EQ(uut->osr_shift_out, 0x00000000);
     }
 }
